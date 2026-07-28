@@ -1,0 +1,33 @@
+.DS_Store
+Thumbs.db
+
+# Python runtime/cache
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Local API data and secrets
+.env
+.env.*
+!.env.example
+api/test-user.php
+server/.local/
+server/uploads/
+server/*.db
+server/*.db-wal
+server/*.db-shm
+
+# Logs and deployment artifacts
+*.log
+logs/
+*.zip
+
+# Editor/project metadata
+.idea/
+.vscode/
+
+# Vercel local state
+.vercel/

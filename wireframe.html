@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>繁笼个人终端 · 线框</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <main class="wireframe">
+    <section class="screen cover-screen">
+      <div class="center-stack">
+        <h1>繁笼个人终端</h1>
+        <p>点击进入</p>
+      </div>
+    </section>
+
+    <section class="screen loading-screen">
+      <div class="loading-box">
+        <div class="loading-bar"><i></i></div>
+        <p>加载身份档案中</p>
+      </div>
+    </section>
+
+    <section class="screen login-screen">
+      <form class="login-card">
+        <h2>登陆账户</h2>
+        <label>
+          <span>账号：</span>
+          <input type="text" aria-label="账号">
+        </label>
+        <label>
+          <span>密码：</span>
+          <input type="password" aria-label="密码">
+        </label>
+        <button type="button">进入档案</button>
+        <small>仅已创建档案的玩家可登录</small>
+      </form>
+    </section>
+
+    <section class="screen home-screen">
+      <header class="home-top">
+        <article class="profile-card">
+          <div class="avatar">头像</div>
+          <div class="profile-meta">
+            <strong>玩家姓名</strong>
+            <span>职位 / 户籍</span>
+            <span>家世 / 隶属</span>
+          </div>
+        </article>
+        <div class="resource-strip">
+          <button>名誉 <b>128</b></button>
+          <button>虞元 <b>16880</b></button>
+          <button>今日 <b>1/3</b></button>
+        </div>
+      </header>
+
+      <div class="home-body">
+        <aside class="quick-rail" aria-label="快捷入口">
+          <button class="round">召集</button>
+          <button class="event-card">
+            <span>限时活动</span>
+            <b>上元灯宴</b>
+            <small>未参与</small>
+          </button>
+        </aside>
+
+        <section class="main-panel" aria-label="主要功能">
+          <button class="memory-tile">
+            <span>剧情回忆</span>
+            <small>戏录 / 我的戏录 / 今日戏录</small>
+          </button>
+
+          <div class="feature-grid">
+            <button>
+              <span>商城</span>
+              <small>购买 / 兑换</small>
+            </button>
+            <button>
+              <span>社交</span>
+              <small>查档案 / 赠礼</small>
+            </button>
+            <button>
+              <span>人物召集</span>
+              <small>卡池 / 记录</small>
+            </button>
+            <button>
+              <span>完整档案</span>
+              <small>属性 / 服饰 / 余额</small>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <nav class="bottom-nav" aria-label="底部导航">
+        <button>日常</button>
+        <button>背包</button>
+        <button>图鉴</button>
+        <button>我的</button>
+      </nav>
+    </section>
+  </main>
+</body>
+</html>

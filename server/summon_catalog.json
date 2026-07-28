@@ -1,0 +1,314 @@
+[
+  {
+    "id": "R/都尉慎完整版.png",
+    "name": "都尉慎",
+    "rarity": "R",
+    "image": "assets/ui/summon-cards/R/都尉慎完整版.png"
+  },
+  {
+    "id": "R/都尉瑶完整版.png",
+    "name": "都尉瑶",
+    "rarity": "R",
+    "image": "assets/ui/summon-cards/R/都尉瑶完整版.png"
+  },
+  {
+    "id": "R/李长海2.png",
+    "name": "李长海",
+    "rarity": "R",
+    "image": "assets/ui/summon-cards/R/李长海2.png"
+  },
+  {
+    "id": "R/奚行简A完整版.png",
+    "name": "奚行简",
+    "rarity": "R",
+    "image": "assets/ui/summon-cards/R/奚行简A完整版.png"
+  },
+  {
+    "id": "R/奚仲A完整版.png",
+    "name": "奚仲",
+    "rarity": "R",
+    "image": "assets/ui/summon-cards/R/奚仲A完整版.png"
+  },
+  {
+    "id": "R/虞复完整版.png",
+    "name": "虞复",
+    "rarity": "R",
+    "image": "assets/ui/summon-cards/R/虞复完整版.png"
+  },
+  {
+    "id": "R/张勉完整版.png",
+    "name": "张勉",
+    "rarity": "R",
+    "image": "assets/ui/summon-cards/R/张勉完整版.png"
+  },
+  {
+    "id": "SR/薄南国.png",
+    "name": "薄南国",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/薄南国.png"
+  },
+  {
+    "id": "SR/褚旻.png",
+    "name": "褚旻",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/褚旻.png"
+  },
+  {
+    "id": "SR/褚南风.png",
+    "name": "褚南风",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/褚南风.png"
+  },
+  {
+    "id": "SR/褚昭.png",
+    "name": "褚昭",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/褚昭.png"
+  },
+  {
+    "id": "SR/褚宗宁.png",
+    "name": "褚宗宁",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/褚宗宁.png"
+  },
+  {
+    "id": "SR/褚宗晏.png",
+    "name": "褚宗晏",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/褚宗晏.png"
+  },
+  {
+    "id": "SR/江云鹤.png",
+    "name": "江云鹤",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/江云鹤.png"
+  },
+  {
+    "id": "SR/靳砚.png",
+    "name": "靳砚",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/靳砚.png"
+  },
+  {
+    "id": "SR/李长海.png",
+    "name": "李长海",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/李长海.png"
+  },
+  {
+    "id": "SR/鹿溪.png",
+    "name": "鹿溪",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/鹿溪.png"
+  },
+  {
+    "id": "SR/明理.jpg",
+    "name": "明理",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/明理.jpg"
+  },
+  {
+    "id": "SR/明言.png",
+    "name": "明言",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/明言.png"
+  },
+  {
+    "id": "SR/明御.png",
+    "name": "明御",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/明御.png"
+  },
+  {
+    "id": "SR/齐归.png",
+    "name": "齐归",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/齐归.png"
+  },
+  {
+    "id": "SR/沈逐川.png",
+    "name": "沈逐川",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/沈逐川.png"
+  },
+  {
+    "id": "SR/时宴直播间.png",
+    "name": "时宴直播间",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/时宴直播间.png"
+  },
+  {
+    "id": "SR/司谌.png",
+    "name": "司谌",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/司谌.png"
+  },
+  {
+    "id": "SR/司烬安.png",
+    "name": "司烬安",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/司烬安.png"
+  },
+  {
+    "id": "SR/司励慈.png",
+    "name": "司励慈",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/司励慈.png"
+  },
+  {
+    "id": "SR/司情.png",
+    "name": "司情",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/司情.png"
+  },
+  {
+    "id": "SR/司厌.png",
+    "name": "司厌",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/司厌.png"
+  },
+  {
+    "id": "SR/闻翡.png",
+    "name": "闻翡",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/闻翡.png"
+  },
+  {
+    "id": "SR/闻礼.png",
+    "name": "闻礼",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/闻礼.png"
+  },
+  {
+    "id": "SR/闻上戎.png",
+    "name": "闻上戎",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/闻上戎.png"
+  },
+  {
+    "id": "SR/闻屿.png",
+    "name": "闻屿",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/闻屿.png"
+  },
+  {
+    "id": "SR/奚复疑.png",
+    "name": "奚复疑",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/奚复疑.png"
+  },
+  {
+    "id": "SR/奚砚辞.png",
+    "name": "奚砚辞",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/奚砚辞.png"
+  },
+  {
+    "id": "SR/奚允.png",
+    "name": "奚允",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/奚允.png"
+  },
+  {
+    "id": "SR/奚照.png",
+    "name": "奚照",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/奚照.png"
+  },
+  {
+    "id": "SR/虞岑.png",
+    "name": "虞岑",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞岑.png"
+  },
+  {
+    "id": "SR/虞从野 宴会.png",
+    "name": "虞从野 宴会",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞从野 宴会.png"
+  },
+  {
+    "id": "SR/虞从野.png",
+    "name": "虞从野",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞从野.png"
+  },
+  {
+    "id": "SR/虞复.png",
+    "name": "虞复",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞复.png"
+  },
+  {
+    "id": "SR/虞栖野.png",
+    "name": "虞栖野",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞栖野.png"
+  },
+  {
+    "id": "SR/虞熙川.png",
+    "name": "虞熙川",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞熙川.png"
+  },
+  {
+    "id": "SR/虞熙怀完整版.png",
+    "name": "虞熙怀",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞熙怀完整版.png"
+  },
+  {
+    "id": "SR/虞熙连.png",
+    "name": "虞熙连",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞熙连.png"
+  },
+  {
+    "id": "SR/虞昭.png",
+    "name": "虞昭",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/虞昭.png"
+  },
+  {
+    "id": "SR/云栖.png",
+    "name": "云栖",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/云栖.png"
+  },
+  {
+    "id": "SR/张崤.png",
+    "name": "张崤",
+    "rarity": "SR",
+    "image": "assets/ui/summon-cards/SR/张崤.png"
+  },
+  {
+    "id": "SSR/奚行简B.png",
+    "name": "奚行简",
+    "rarity": "SSR",
+    "image": "assets/ui/summon-cards/SSR/奚行简B.png"
+  },
+  {
+    "id": "SSR/奚仲B.png",
+    "name": "奚仲",
+    "rarity": "SSR",
+    "image": "assets/ui/summon-cards/SSR/奚仲B.png"
+  },
+  {
+    "id": "SSR/虞景.png",
+    "name": "虞景",
+    "rarity": "SSR",
+    "image": "assets/ui/summon-cards/SSR/虞景.png"
+  },
+  {
+    "id": "SSR/Q版褚旻.png",
+    "name": "Q版褚旻",
+    "rarity": "SSR",
+    "image": "assets/ui/summon-cards/SSR/Q版褚旻.png"
+  },
+  {
+    "id": "SSR/Q版虞景奚行简.png",
+    "name": "Q版虞景奚行简",
+    "rarity": "SSR",
+    "image": "assets/ui/summon-cards/SSR/Q版虞景奚行简.png"
+  }
+]

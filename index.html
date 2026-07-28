@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090806">
+  <title>繁笼</title>
+  <link rel="stylesheet" href="styles.css?v=20260727-07">
+</head>
+<body>
+  <main class="game-shell" aria-live="polite">
+    <section class="screen opening is-active" id="opening" aria-label="繁笼首页">
+      <div class="artboard opening-board">
+        <img src="assets/ui/首页.png" alt="繁笼">
+        <button class="hotspot start-hotspot" data-enter aria-label="开启繁笼"></button>
+      </div>
+    </section>
+
+    <section class="screen login" id="login" aria-label="登录账户" aria-hidden="true">
+      <div class="artboard login-board">
+        <img src="assets/ui/登陆.png" alt="繁笼登录账户">
+        <form class="login-form" id="loginForm" autocomplete="on">
+          <label class="sr-only" for="account">账号</label>
+          <input id="account" name="account" type="text" placeholder="请输入账号" autocomplete="username" required>
+          <label class="sr-only" for="password">密码</label>
+          <input id="password" name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required>
+          <button type="submit" aria-label="进入档案"></button>
+        </form>
+        <p class="login-error" id="loginError" role="alert"></p>
+      </div>
+    </section>
+
+    <section class="screen loading" id="loading" aria-label="正在加载" aria-hidden="true">
+      <div class="artboard loading-board">
+        <img src="assets/ui/加载页面.png" alt="繁笼加载页面">
+        <div class="loading-progress" aria-hidden="true"><i id="loadingBar"></i></div>
+        <p class="loading-note" id="loadingNote">正在整理档案与记忆，请稍候</p>
+      </div>
+    </section>
+
+    <section class="screen home" id="home" aria-label="繁笼主页" aria-hidden="true">
+      <div class="artboard home-board">
+        <img src="assets/ui/主页图.png" alt="虞宫案台主页">
+
+        <button class="avatar-control" id="avatarControl" type="button" aria-label="更换玩家头像" title="点击更换头像">
+          <img id="playerAvatar" alt="">
+          <span>更换头像</span>
+        </button>
+        <input class="sr-only" id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp">
+
+        <div class="profile-copy">
+          <strong id="playerName">姓名 姓名</strong>
+          <span id="playerRole">议阁公卿、执理事</span>
+          <span id="playerFamily">公民籍</span>
+        </div>
+
+        <div class="resource-copy reputation-copy"><span>名誉</span><strong id="reputation">1280</strong></div>
+        <div class="resource-copy currency-copy"><span>虞元</span><strong id="currency">5688</strong></div>
+        <button class="resource-add-hotspot resource-add-home-reputation" data-resource-add="名誉" aria-label="查看名誉说明"></button>
+        <button class="resource-add-hotspot resource-add-home-currency" data-resource-add="虞元" aria-label="查看虞元说明"></button>
+
+        <button class="hotspot memory-hotspot" data-feature="剧情回忆" aria-label="剧情回忆"></button>
+        <button class="hotspot daily-hotspot" data-feature="日常" aria-label="日常"></button>
+        <button class="hotspot social-hotspot" data-feature="社交" aria-label="社交"></button>
+        <button class="hotspot shop-hotspot" data-feature="商城" aria-label="商城"></button>
+        <button class="hotspot summon-hotspot" data-feature="召集" aria-label="召集"></button>
+        <button class="hotspot event-hotspot" data-feature="活动" aria-label="活动"></button>
+        <button class="hotspot home-hotspot" data-feature="首页" aria-label="首页"></button>
+        <button class="hotspot role-hotspot" data-feature="角色" aria-label="角色"></button>
+        <button class="hotspot bag-hotspot" data-feature="背包" aria-label="背包"></button>
+        <button class="hotspot archive-hotspot" data-feature="图鉴" aria-label="图鉴"></button>
+      </div>
+    </section>
+
+    <section class="screen daily-screen" id="dailyScreen" aria-label="日常" aria-hidden="true">
+      <div class="artboard daily-board">
+        <img src="assets/ui/日常底图-v2.png" alt="繁笼日常页面">
+        <button class="daily-back" id="dailyBack" type="button" aria-label="返回主页"></button>
+
+        <div class="daily-progress" aria-label="今日进度">
+          <strong class="daily-progress-sign" id="dailySignProgress">0/1</strong>
+          <strong class="daily-progress-training" id="dailyTrainingProgress">0/2</strong>
+          <strong class="daily-progress-box" id="dailyBoxProgress">0/10</strong>
+        </div>
+
+        <div class="daily-actions" aria-label="日常行动">
+          <button class="daily-action daily-sign-action" id="dailySignAction" type="button"><span>进行</span><small>GO</small></button>
+          <button class="daily-action daily-training-action" id="dailyTrainingAction" type="button"><span>进行</span><small>GO</small></button>
+          <button class="daily-action daily-box-single" id="dailyBoxSingle" type="button"><span>单抽</span><small>SINGLE</small></button>
+          <button class="daily-action daily-box-ten" id="dailyBoxTen" type="button"><span>十连抽</span><small>TEN TIMES</small></button>
+        </div>
+
+        <section class="daily-results" aria-label="今日结果" aria-live="polite">
+          <button class="daily-result-slot daily-result-sign-slot" data-daily-detail="signin" type="button">
+            <strong class="daily-sign-result" id="dailySignResult">今日未签到</strong>
+            <span>点击查看</span>
+          </button>
+          <button class="daily-result-slot daily-result-training-slot" data-daily-detail="training" type="button">
+            <strong class="daily-training-result" id="dailyTrainingResult">今日未训练</strong>
+            <span>点击查看</span>
+          </button>
+          <button class="daily-result-slot daily-result-box-slot" data-daily-detail="blind_box" type="button">
+            <strong class="daily-box-result" id="dailyBoxResult">今日未开启</strong>
+            <span>点击查看</span>
+          </button>
+        </section>
+      </div>
+    </section>
+
+    <section class="screen social-screen" id="socialScreen" aria-label="社交" aria-hidden="true">
+      <div class="artboard social-board">
+        <img src="assets/ui/社交图.png" alt="繁笼社交页面">
+        <button class="social-back" id="socialBack" type="button" aria-label="返回主页"></button>
+
+        <form class="social-search" id="socialSearchForm" role="search">
+          <label class="sr-only" for="socialSearchInput">搜索玩家</label>
+          <input id="socialSearchInput" name="player" type="search" placeholder="输入玩家姓名或账号" autocomplete="off">
+          <button type="submit" aria-label="搜索玩家"></button>
+        </form>
+
+        <aside class="social-selection" id="socialSelection" aria-live="polite">
+          <img id="socialSelectionAvatar" alt="">
+          <span>当前未选择玩家</span>
+          <strong id="socialSelectionName">请先搜索</strong>
+        </aside>
+
+        <nav class="social-actions" aria-label="社交功能">
+          <button class="social-action social-profile-action" type="button" data-social-action="profile" aria-label="查看玩家档案"></button>
+          <button class="social-action social-yuyuan-action" type="button" data-social-action="yuyuan" aria-label="赠送虞元"></button>
+          <button class="social-action social-item-action" type="button" data-social-action="item" aria-label="赠送道具"></button>
+        </nav>
+      </div>
+    </section>
+
+    <section class="screen shop-screen" id="shopScreen" aria-label="虞宫商城" aria-hidden="true">
+      <div class="artboard shop-board">
+        <img class="shop-scene" src="assets/ui/商城底图.png" alt="繁笼商城">
+        <div class="shop-veil" aria-hidden="true"></div>
+        <button class="shop-back" id="shopBack" type="button" aria-label="返回主页">‹ <span>返回</span></button>
+        <header class="shop-heading sr-only"><h1>商城</h1></header>
+        <div class="shop-resources"><span>名誉 <strong id="shopReputation">0</strong></span><i></i><span>虞元 <strong id="shopCurrency">0</strong></span></div>
+        <button class="resource-add-hotspot resource-add-shop-reputation" data-resource-add="名誉" aria-label="查看名誉说明"></button>
+        <button class="resource-add-hotspot resource-add-shop-currency" data-resource-add="虞元" aria-label="查看虞元说明"></button>
+        <nav class="shop-tabs" id="shopTabs" aria-label="商城分类">
+          <button class="is-active" data-shop-channel="yuCoin" type="button"><strong>虞元商店</strong><small>YU YUAN SHOP</small></button>
+          <button data-shop-channel="reputation" type="button"><strong>名誉商店</strong><small>HONOR SHOP</small></button>
+          <button data-shop-channel="compound" type="button"><strong>兑换合成</strong><small>EXCHANGE &amp; SYNTHESIS</small></button>
+        </nav>
+        <nav class="shop-categories" id="shopCategories" aria-label="商品类型">
+        </nav>
+        <section class="shop-catalog"><div class="shop-grid" id="shopGrid"></div><div class="shop-empty" id="shopEmpty">当前分类暂无商品</div></section>
+        <footer class="shop-pagination"><button id="shopPrev" type="button">‹</button><span id="shopPage">01 / 01</span><button id="shopNext" type="button">›</button></footer>
+      </div>
+    </section>
+
+    <section class="screen bag-screen" id="bagScreen" aria-label="背包" aria-hidden="true">
+      <div class="artboard bag-board">
+        <img src="assets/ui/背包.png" alt="繁笼背包">
+        <button class="bag-back" id="bagBack" aria-label="返回主页"></button>
+
+        <div class="bag-resource bag-reputation"><span>名誉</span><strong id="bagReputation">1280</strong></div>
+        <div class="bag-resource bag-currency"><span>虞元</span><strong id="bagCurrency">5688</strong></div>
+        <button class="bag-resource-add bag-reputation-add" data-resource-add="名誉" aria-label="补充名誉">＋</button>
+        <button class="bag-resource-add bag-currency-add" data-resource-add="虞元" aria-label="补充虞元">＋</button>
+
+        <nav class="bag-filters" id="bagFilters" aria-label="背包分类">
+        </nav>
+        <div class="bag-grid" id="bagGrid" aria-label="物品列表"></div>
+
+        <aside class="bag-detail" aria-live="polite">
+          <div class="bag-preview"><img id="bagPreviewImage" alt=""></div>
+          <div class="bag-detail-heading"><h2 id="bagItemName">手写信件</h2><span>拥有：<b id="bagItemCount">3</b></span></div>
+          <p id="bagItemDescription">一封字迹娟秀的信，信封上是熟悉的香气，似乎承载着未说出口的话语。</p>
+          <button class="bag-use-button" id="bagUseButton"><img src="assets/ui/使用按钮.png" alt=""><span>使用</span></button>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen gallery-screen" id="galleryScreen" aria-label="人物图鉴" aria-hidden="true">
+      <div class="artboard gallery-board">
+        <img src="assets/ui/图鉴.png" alt="繁笼人物图鉴">
+        <button class="gallery-back" id="galleryBack" aria-label="返回主页"></button>
+        <div class="gallery-resource gallery-reputation"><span>名誉</span><strong>1280</strong></div>
+        <div class="gallery-resource gallery-currency"><span>虞元</span><strong>5688</strong></div>
+        <button class="gallery-resource-add gallery-reputation-add" data-gallery-add="名誉" aria-label="补充名誉">＋</button>
+        <button class="gallery-resource-add gallery-currency-add" data-gallery-add="虞元" aria-label="补充虞元">＋</button>
+        <nav class="gallery-filters" id="galleryFilters" aria-label="图鉴筛选">
+          <button class="is-active" data-gallery-filter="all">全部</button>
+          <button data-gallery-filter="SSR">SSR</button>
+          <button data-gallery-filter="SR">SR</button>
+          <button data-gallery-filter="R">R</button>
+        </nav>
+        <div class="gallery-count"><span id="galleryCount">6/8</span></div>
+        <div class="gallery-grid" id="galleryGrid" aria-label="人物卡牌列表"></div>
+      </div>
+    </section>
+
+    <section class="screen summon-screen" id="summonScreen" aria-label="召集" aria-hidden="true">
+      <div class="artboard summon-board">
+        <img src="assets/ui/召集底图.png" alt="召集页面">
+        <button class="summon-back" id="summonBack" type="button" aria-label="返回主页"></button>
+        <div class="summon-balance"><img src="assets/ui/虞元icon.png" alt=""><span>当前虞元</span><strong id="summonBalance">0</strong></div>
+        <p class="summon-rate" id="summonRate">R 70% · SR 25% · SSR 5%　十连至少获得一张 SR 或 SSR</p>
+        <button class="summon-draw summon-draw-one" data-summon-count="1" type="button" aria-label="单抽"><span><img src="assets/ui/虞元icon.png" alt="">5</span></button>
+        <button class="summon-draw summon-draw-ten" data-summon-count="10" type="button" aria-label="十连抽"><span><img src="assets/ui/虞元icon.png" alt="">45</span></button>
+        <button class="summon-details-link" id="summonDetailsLink" type="button" aria-label="查看召集详细说明">详细说明</button>
+        <button class="summon-gallery-link" id="summonGalleryLink" type="button">查看已获角色</button>
+      </div>
+    </section>
+
+    <section class="screen summon-result-screen" id="summonResultScreen" aria-label="召集结果" aria-hidden="true">
+      <div class="artboard summon-result-board">
+        <img src="assets/ui/召集结果底图.png" alt="召集结果">
+        <button class="summon-result-back" id="summonResultBack" type="button" aria-label="返回召集"></button>
+        <p class="summon-result-summary" id="summonResultSummary">召集结果</p>
+        <div class="summon-result-grid" id="summonResultGrid"></div>
+        <button class="summon-result-confirm" id="summonResultConfirm" type="button">确认</button>
+        <button class="summon-result-again" id="summonResultAgain" type="button">再次召集</button>
+      </div>
+    </section>
+
+    <section class="screen memory-screen" id="memoryScreen" aria-label="剧情回忆" aria-hidden="true">
+      <div class="artboard memory-board">
+        <img src="assets/ui/剧情底图-v2.png" alt="剧情回忆">
+        <button class="memory-back" id="memoryBack" type="button" aria-label="返回主页"></button>
+        <nav class="memory-filters" id="memoryFilters" aria-label="剧情筛选">
+          <button class="is-active" data-memory-filter="all" type="button">全部</button>
+          <button data-memory-filter="mine" type="button">我的</button>
+          <button data-memory-filter="today" type="button">今日</button>
+          <button data-memory-filter="favorite" type="button">收藏</button>
+        </nav>
+        <div class="memory-list" id="memoryList" aria-label="剧情列表"></div>
+      </div>
+    </section>
+
+    <section class="screen memory-detail-screen" id="memoryDetailScreen" aria-label="剧情详情" aria-hidden="true">
+      <div class="artboard memory-detail-board">
+        <img src="assets/ui/剧情详情底图.png" alt="剧情详情">
+        <button class="memory-detail-back" id="memoryDetailBack" type="button" aria-label="返回剧情列表"></button>
+        <h2 id="memoryDetailTitle">剧情标题</h2>
+        <div class="memory-detail-meta">
+          <span><i>时间：</i><b id="memoryDetailTime"></b></span>
+          <span><i>参与人：</i><b id="memoryDetailPeople"></b></span>
+          <span><i>总字数：</i><b id="memoryDetailWords"></b></span>
+          <span><i>结算：</i><b id="memoryDetailReward"></b></span>
+        </div>
+        <article class="memory-detail-body" id="memoryDetailBody"></article>
+        <button class="memory-action memory-favorite-action" id="memoryFavoriteAction" type="button">收藏</button>
+        <button class="memory-action memory-share-action" id="memoryShareAction" type="button">分享链接</button>
+        <button class="memory-action memory-return-action" id="memoryReturnAction" type="button">返回列表</button>
+      </div>
+    </section>
+
+    <section class="screen archive-screen" id="archiveScreen" aria-label="角色档案" aria-hidden="true">
+      <div class="artboard archive-board">
+        <img id="archiveBackground" src="assets/ui/档案-详情.png" alt="角色详情页面">
+        <button class="wardrobe-back" id="wardrobeBack" aria-label="返回主页"></button>
+        <button class="archive-tab archive-tab-detail" data-archive-tab="detail" aria-label="详情" aria-current="page"></button>
+        <button class="archive-tab archive-tab-stats" data-archive-tab="stats" aria-label="属性"></button>
+        <button class="archive-tab archive-tab-outfit" data-archive-tab="outfit" aria-label="服饰"></button>
+
+        <section class="archive-page detail-content is-active" data-archive-page="detail" aria-label="个人档案详情">
+          <div class="detail-list" id="detailList"></div>
+          <div class="identity-signature">
+            <strong id="signatureName">张勉</strong>
+            <span id="signatureRoman">ZHANG MIAN</span>
+          </div>
+        </section>
+
+        <section class="archive-page stats-content" data-archive-page="stats" aria-label="人物属性">
+          <header class="stats-summary">
+            <span>综合评定</span><strong id="totalStats">574</strong><small>人物八维总值</small>
+          </header>
+          <div class="stats-grid" id="statsGrid"></div>
+          <aside class="stats-bonus">
+            <div class="bonus-heading"><span>属性加成</span><strong id="bonusTotal">+22</strong></div>
+            <div id="bonusList"></div>
+          </aside>
+        </section>
+
+        <section class="archive-page wardrobe-content" data-archive-page="outfit" aria-label="服饰衣橱">
+          <header class="wardrobe-heading" aria-hidden="true"></header>
+
+          <section class="wardrobe-catalog" aria-label="服饰分类与列表">
+            <nav class="outfit-filters" id="outfitFilters" aria-label="七类服饰筛选"></nav>
+            <div class="catalog-heading"><span id="outfitCategoryTitle">上衣</span><small id="outfitCategoryCount">0 件</small></div>
+            <div class="outfit-grid" id="outfitGrid" aria-label="服饰列表"></div>
+            <footer class="catalog-pagination">
+              <button id="outfitPrev" type="button" aria-label="上一页">‹</button>
+              <span id="outfitPage">01 / 01</span>
+              <button id="outfitNext" type="button" aria-label="下一页">›</button>
+            </footer>
+          </section>
+
+          <article class="equipped-preview">
+            <span class="preview-kicker">CURRENT OUTFIT</span>
+            <div class="garment-visual garment-visual-large" id="outfitPreview" aria-hidden="true"></div>
+            <small id="equippedSlot">当前穿搭</small>
+            <strong id="equippedName">正在整理穿搭</strong>
+          </article>
+
+          <aside class="outfit-details">
+            <span class="rarity" id="outfitRarity">上衣 · 已拥有</span>
+            <h3 id="outfitName">浅灰羊绒大衣</h3>
+            <p id="outfitDescription">具有良好的保暖性。</p>
+            <dl id="outfitStats"></dl>
+            <div class="outfit-effect">
+              <small>获取信息</small>
+              <strong id="outfitEffect">20 虞元</strong>
+            </div>
+            <button class="equip-button" id="equipButton">穿戴</button>
+            <div class="collection-progress"><span>当前持有</span><i><b id="collectionBar"></b></i><strong id="collectionCount">0/37</strong></div>
+          </aside>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="avatar-cropper" id="avatarCropper" aria-hidden="true">
+    <section class="avatar-cropper-panel" role="dialog" aria-modal="true" aria-labelledby="avatarCropTitle">
+      <header><strong id="avatarCropTitle">裁剪头像</strong><button id="avatarCropClose" type="button" aria-label="关闭">×</button></header>
+      <p>拖动图片调整位置，使用下方滑杆缩放。</p>
+      <div class="avatar-crop-stage"><canvas id="avatarCropCanvas" width="320" height="320"></canvas><i aria-hidden="true"></i></div>
+      <label>缩放 <input id="avatarCropZoom" type="range" min="100" max="300" value="100"></label>
+      <div class="avatar-crop-actions"><button id="avatarCropCancel" type="button">取消</button><button id="avatarCropSave" type="button">确认裁剪</button></div>
+    </section>
+  </div>
+
+  <div class="terminal-dialog" id="terminalDialog" aria-hidden="true">
+    <section class="terminal-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="terminalDialogTitle">
+      <header><span>FANLONG TERMINAL</span><h2 id="terminalDialogTitle">确认操作</h2><button id="terminalDialogClose" type="button" aria-label="关闭"><img src="assets/ui/弹窗关闭.png" alt=""></button></header>
+      <div class="terminal-dialog-body" id="terminalDialogBody"></div>
+      <footer><button class="terminal-dialog-cancel" id="terminalDialogCancel" type="button">取消</button><button class="terminal-dialog-confirm" id="terminalDialogConfirm" type="button">确认</button></footer>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <button class="debug-toggle" id="debugToggle" type="button" aria-controls="debugPanel" aria-expanded="false">调试</button>
+  <aside class="debug-panel" id="debugPanel" aria-label="调试台" aria-hidden="true">
+    <header><strong>调试台</strong><button id="debugClose" type="button" aria-label="关闭">×</button></header>
+    <p class="debug-tip">先点击页面文字，或从下方选择项目。</p>
+    <label>当前项目<select id="debugTarget"></select></label>
+    <label>横向位置 <output id="debugXValue">0 px</output><input id="debugX" type="range" min="-200" max="200" step="1" value="0"></label>
+    <label>纵向位置 <output id="debugYValue">0 px</output><input id="debugY" type="range" min="-200" max="200" step="1" value="0"></label>
+    <label>文字大小 <output id="debugSizeValue">100%</output><input id="debugSize" type="range" min="50" max="200" step="1" value="100"></label>
+    <details class="showcase-debug" open>
+      <summary>服饰展示调试</summary>
+      <label>整体舞台 左右 <output id="showcaseStageLeftValue">43%</output><input id="showcaseStageLeft" type="range" min="0" max="100" step="0.5" value="43"></label>
+      <label>整体舞台 宽度 <output id="showcaseStageWidthValue">64%</output><input id="showcaseStageWidth" type="range" min="20" max="120" step="1" value="64"></label>
+      <label>裁剪框 左右 <output id="showcaseWindowXValue">0%</output><input id="showcaseWindowX" type="range" min="-90" max="90" step="0.5" value="0"></label>
+      <label>裁剪框 上下 <output id="showcaseWindowYValue">0%</output><input id="showcaseWindowY" type="range" min="-20" max="20" step="0.5" value="0"></label>
+      <label>裁剪框 宽度 <output id="showcaseWindowWValue">100%</output><input id="showcaseWindowW" type="range" min="45" max="120" step="1" value="100"></label>
+      <label>裁剪框 高度 <output id="showcaseWindowHValue">100%</output><input id="showcaseWindowH" type="range" min="45" max="120" step="1" value="100"></label>
+      <label>图片 左右 <output id="showcaseItemXValue">0%</output><input id="showcaseItemX" type="range" min="-90" max="90" step="0.5" value="0"></label>
+      <label>图片 上下 <output id="showcaseItemYValue">0%</output><input id="showcaseItemY" type="range" min="-30" max="30" step="0.5" value="0"></label>
+      <label>图片 大小 <output id="showcaseItemScaleValue">100%</output><input id="showcaseItemScale" type="range" min="35" max="180" step="1" value="100"></label>
+      <label>光环 左右 <output id="showcaseAuraXValue">0%</output><input id="showcaseAuraX" type="range" min="-90" max="90" step="0.5" value="0"></label>
+      <label>光环 上下 <output id="showcaseAuraYValue">0%</output><input id="showcaseAuraY" type="range" min="-30" max="30" step="0.5" value="0"></label>
+      <label>光环 大小 <output id="showcaseAuraScaleValue">100%</output><input id="showcaseAuraScale" type="range" min="30" max="180" step="1" value="100"></label>
+      <label>底座 左右 <output id="showcaseBaseXValue">0%</output><input id="showcaseBaseX" type="range" min="-90" max="90" step="0.5" value="0"></label>
+      <label>底座 上下 <output id="showcaseBaseYValue">0%</output><input id="showcaseBaseY" type="range" min="-25" max="25" step="0.5" value="0"></label>
+      <label>底座 大小 <output id="showcaseBaseScaleValue">100%</output><input id="showcaseBaseScale" type="range" min="35" max="180" step="1" value="100"></label>
+      <label>下方文字 左右 <output id="showcaseTextXValue">0%</output><input id="showcaseTextX" type="range" min="-90" max="90" step="0.5" value="0"></label>
+      <label>下方文字 上下 <output id="showcaseTextYValue">0 px</output><input id="showcaseTextY" type="range" min="-80" max="80" step="1" value="0"></label>
+      <label>下方文字 大小 <output id="showcaseTextScaleValue">100%</output><input id="showcaseTextScale" type="range" min="50" max="180" step="1" value="100"></label>
+      <button class="debug-reset-all" id="showcaseDebugReset" type="button">重置服饰展示</button>
+    </details>
+    <details class="visual-debug" open>
+      <summary>商城与召集调试</summary>
+      <label>商城商品图 下移 <output id="shopProductYValue">12%</output><input id="shopProductY" type="range" min="-10" max="32" step="0.5" value="12"></label>
+      <label>商城商品图 大小 <output id="shopProductScaleValue">100%</output><input id="shopProductScale" type="range" min="70" max="130" step="1" value="100"></label>
+      <label>商城价格 上下 <output id="shopPriceYValue">-8 px</output><input id="shopPriceY" type="range" min="-40" max="40" step="0.5" value="-8"></label>
+      <label>商城价格 大小 <output id="shopPriceScaleValue">100%</output><input id="shopPriceScale" type="range" min="70" max="160" step="1" value="100"></label>
+      <label>召集价格 上下 <output id="summonPriceYValue">140 px</output><input id="summonPriceY" type="range" min="-20" max="190" step="0.5" value="140"></label>
+      <label>召集价格 大小 <output id="summonPriceScaleValue">100%</output><input id="summonPriceScale" type="range" min="70" max="160" step="1" value="100"></label>
+      <button class="debug-reset-all" id="visualDebugReset" type="button">重置商城与召集</button>
+    </details>
+    <div class="debug-actions">
+      <button id="debugReset" type="button">重置当前</button>
+      <button id="debugExport" type="button">复制配置</button>
+    </div>
+    <button class="debug-reset-all" id="debugResetAll" type="button">清除全部调整</button>
+  </aside>
+  <script src="database-snapshot.js?v=20260724-30"></script>
+  <script src="wardrobe-data.js?v=20260724-30"></script>
+  <script src="app.js?v=20260727-07"></script>
+</body>
+</html>
