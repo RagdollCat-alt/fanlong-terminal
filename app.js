@@ -37,16 +37,18 @@ let toastTimer;
 let loadingFrame;
 let apiUser = null;
 let dialogConfirmHandler = null;
+let isTextEditing = false;
 
 function updateGameLayout() {
   const viewportWidth = window.visualViewport?.width || window.innerWidth;
   const viewportHeight = window.visualViewport?.height || window.innerHeight;
-  const portraitCanvas = viewportWidth < viewportHeight && Math.min(viewportWidth, viewportHeight) <= 900;
+  const portraitCanvas = !isTextEditing && viewportWidth < viewportHeight && Math.min(viewportWidth, viewportHeight) <= 900;
   const scale = portraitCanvas
     ? Math.min(viewportWidth / 941, viewportHeight / 1672)
     : Math.min(viewportWidth / 1672, viewportHeight / 941);
   document.body.style.setProperty('--game-scale', String(Math.max(scale, .01)));
   document.body.classList.toggle('is-portrait-canvas', portraitCanvas);
+  document.body.classList.toggle('is-text-editing', isTextEditing);
 }
 
 function screenArtwork(screen) {
@@ -72,6 +74,19 @@ updateGameLayout();
 window.addEventListener('resize', updateGameLayout, { passive: true });
 window.visualViewport?.addEventListener('resize', updateGameLayout, { passive: true });
 window.addEventListener('orientationchange', updateGameLayout, { passive: true });
+document.addEventListener('focusin', (event) => {
+  if (!event.target.matches('input, textarea, select')) return;
+  isTextEditing = true;
+  updateGameLayout();
+});
+document.addEventListener('focusout', (event) => {
+  if (!event.target.matches('input, textarea, select')) return;
+  window.setTimeout(() => {
+    if (document.activeElement?.matches('input, textarea, select')) return;
+    isTextEditing = false;
+    updateGameLayout();
+  }, 80);
+});
 hydrateScreenAssets(opening);
 
 const scheduleAssetWarmup = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 500));
@@ -191,13 +206,17 @@ function showScreen(nextScreen) {
   });
 }
 
+function warmupAppShellAssets() {
+  [dailyScreen, socialScreen, shopScreen, bagScreen, archiveScreen, galleryScreen, memoryScreen, memoryDetailScreen, summonScreen, summonResultScreen]
+    .forEach((screen, index) => window.setTimeout(() => hydrateScreenAssets(screen), index * 80));
+}
+
 function enterLogin() {
   showScreen(login);
   scheduleAssetWarmup(() => {
     hydrateScreenAssets(loading);
     hydrateScreenAssets(home);
   });
-  window.setTimeout(() => document.querySelector('#account').focus(), 500);
 }
 
 function enterLoading() {
@@ -226,6 +245,7 @@ function enterHome() {
   cancelAnimationFrame(loadingFrame);
   showScreen(home);
   opening.classList.remove('is-active');
+  scheduleAssetWarmup(warmupAppShellAssets);
 }
 
 function showToast(label) {
@@ -302,7 +322,6 @@ document.querySelectorAll('[data-feature]').forEach((button) => {
     }
     else if (button.dataset.feature === '社交') {
       showScreen(socialScreen);
-      window.setTimeout(() => document.querySelector('#socialSearchInput').focus(), 350);
     }
     else if (button.dataset.feature === '商城') {
       showScreen(shopScreen);
@@ -1090,18 +1109,18 @@ document.querySelector('#avatarCropCancel').addEventListener('click', closeAvata
 document.querySelector('#avatarCropClose').addEventListener('click', closeAvatarCropper);
 
 let bagItems = [
-  { id: 'letter', name: '手写信件', type: '信件', count: 3, image: 'assets/ui/bag-items/letter.png', description: '一封字迹娟秀的信，信封上是熟悉的香气，似乎承载着未说出口的话语。', usable: true },
-  { id: 'perfume', name: '蔷薇香水', type: '礼物', count: 5, image: 'assets/ui/bag-items/perfume.png', description: '以夜色蔷薇调制的香水，香气清冷而持久，适合赠予重要之人。', usable: true },
-  { id: 'brooch', name: '紫晶胸针', type: '服饰', count: 2, image: 'assets/ui/bag-items/brooch.png', description: '紫色晶石缀成的花枝胸针，在灯下有细碎流光。', usable: true },
-  { id: 'journal', name: '旧日手账', type: '道具', count: 1, image: 'journal.png', description: '记录着零散日期与只言片语的手账，也许能找到某段往事的线索。', usable: true },
-  { id: 'key', name: '蕾丝钥匙', type: '道具', count: 2, image: 'key.png', description: '一枚造型精致的古钥匙，不知能打开哪一扇门。', usable: true },
-  { id: 'bow', name: '暗纹领结', type: '服饰', count: 4, image: 'bow.png', description: '深色织缎领结，边缘缀有细密金线，端正而不显张扬。', usable: true },
-  { id: 'watch', name: '复古怀表', type: '礼物', count: 1, image: 'watch.png', description: '表盖内刻着一句已经模糊的祝语，指针仍走得很准。', usable: true },
-  { id: 'medal', name: '旧徽章', type: '道具', count: 6, image: 'medal.png', description: '一枚有些年头的金属徽章，背面的家族纹章仍清晰可辨。', usable: false },
-  { id: 'flowers', name: '紫藤花束', type: '礼物', count: 3, image: 'flowers.png', description: '刚用金线扎好的紫藤花束，花瓣上还留着露水。', usable: true },
-  { id: 'pass', name: '镜金通行函', type: '道具', count: 2, image: 'pass.png', description: '烫有特殊纹章的通行函，可在指定时间内进入虞宫部分区域。', usable: true },
-  { id: 'ring', name: '星芒戒指', type: '礼物', count: 1, image: 'ring.png', description: '安放在黑色绒盒中的戒指，宝石上折射着星芒。', usable: true },
-  { id: 'feather', name: '青羽笔', type: '道具', count: 2, image: 'feather.png', description: '一支笔尖锋利的青黑色羽笔，书写时几乎不会留下墨渍。', usable: true }
+  { id: 'letter', name: '手写信件', type: '信件', count: 3, image: 'assets/ui/bag-items-web/letter.webp', description: '一封字迹娟秀的信，信封上是熟悉的香气，似乎承载着未说出口的话语。', usable: true },
+  { id: 'perfume', name: '蔷薇香水', type: '礼物', count: 5, image: 'assets/ui/bag-items-web/perfume.webp', description: '以夜色蔷薇调制的香水，香气清冷而持久，适合赠予重要之人。', usable: true },
+  { id: 'brooch', name: '紫晶胸针', type: '服饰', count: 2, image: 'assets/ui/bag-items-web/brooch.webp', description: '紫色晶石缀成的花枝胸针，在灯下有细碎流光。', usable: true },
+  { id: 'journal', name: '旧日手账', type: '道具', count: 1, image: 'assets/ui/bag-items-web/journal.webp', description: '记录着零散日期与只言片语的手账，也许能找到某段往事的线索。', usable: true },
+  { id: 'key', name: '蕾丝钥匙', type: '道具', count: 2, image: 'assets/ui/bag-items-web/key.webp', description: '一枚造型精致的古钥匙，不知能打开哪一扇门。', usable: true },
+  { id: 'bow', name: '暗纹领结', type: '服饰', count: 4, image: 'assets/ui/bag-items-web/bow.webp', description: '深色织缎领结，边缘缀有细密金线，端正而不显张扬。', usable: true },
+  { id: 'watch', name: '复古怀表', type: '礼物', count: 1, image: 'assets/ui/bag-items-web/watch.webp', description: '表盖内刻着一句已经模糊的祝语，指针仍走得很准。', usable: true },
+  { id: 'medal', name: '旧徽章', type: '道具', count: 6, image: 'assets/ui/bag-items-web/medal.webp', description: '一枚有些年头的金属徽章，背面的家族纹章仍清晰可辨。', usable: false },
+  { id: 'flowers', name: '紫藤花束', type: '礼物', count: 3, image: 'assets/ui/bag-items-web/flowers.webp', description: '刚用金线扎好的紫藤花束，花瓣上还留着露水。', usable: true },
+  { id: 'pass', name: '镜金通行函', type: '道具', count: 2, image: 'assets/ui/bag-items-web/pass.webp', description: '烫有特殊纹章的通行函，可在指定时间内进入虞宫部分区域。', usable: true },
+  { id: 'ring', name: '星芒戒指', type: '礼物', count: 1, image: 'assets/ui/bag-items-web/ring.webp', description: '安放在黑色绒盒中的戒指，宝石上折射着星芒。', usable: true },
+  { id: 'feather', name: '青羽笔', type: '道具', count: 2, image: 'assets/ui/bag-items-web/feather.webp', description: '一支笔尖锋利的青黑色羽笔，书写时几乎不会留下墨渍。', usable: true }
 ];
 
 let selectedBagItemId = 'letter';
@@ -1285,7 +1304,7 @@ function confirmSummon(count) {
   openTerminalDialog({
     title: '确认召集',
     confirmLabel: '确认召集',
-    html: `<p>确定消耗 <b class="dialog-currency"><img src="assets/ui/虞元icon.png" alt="">${cost} 虞元</b>，召集${count}次吗？</p><p class="dialog-target">当前虞元：${summonData.balance}</p>`,
+    html: `<p>确定消耗 <b class="dialog-currency"><img src="assets/ui/web/虞元icon.webp" alt="">${cost} 虞元</b>，召集${count}次吗？</p><p class="dialog-target">当前虞元：${summonData.balance}</p>`,
     onConfirm: async () => {
       const result = await apiRequest('/api/summon/draw', {
         method: 'POST', headers: operationHeaders(`summon-${count}`), body: JSON.stringify({ count })
@@ -1662,7 +1681,7 @@ function applyApiUser(user) {
 function itemAssetPath(item) {
   const wardrobeItem = wardrobeDatabase.items.find((entry) => entry.name === item.name);
   const slot = item.slot || wardrobeItem?.slot;
-  const categories = { top: '上衣', bottom: '下装', head: '头饰', neck: '颈饰', interior: '内饰', accessory: '配饰' };
+  const categories = { hair: '发型', top: '上衣', bottom: '下装', head: '头饰', neck: '颈饰', interior: '内饰', accessory: '配饰' };
   if (categories[slot]) return `assets/ui/products-web/${categories[slot]}/${item.name}.webp`;
   if (item.type === 'consumable') return `assets/ui/products-web/消耗类/${item.name}.webp`;
   return 'assets/ui/web/通用占位图.webp';
@@ -1793,6 +1812,7 @@ let selectedOutfitId = outfits.find((item) => item.unlocked && item.equipped)?.i
 const outfitGrid = document.querySelector('#outfitGrid');
 const equipButton = document.querySelector('#equipButton');
 const productCategoryBySlot = {
+  hair: '发型',
   top: '上衣',
   bottom: '下装',
   head: '头饰',

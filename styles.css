@@ -130,6 +130,10 @@ body.is-portrait-canvas .artboard {
   transform: rotate(90deg) scale(var(--game-scale, 1));
 }
 
+body.is-text-editing .artboard {
+  transform: scale(var(--game-scale, 1));
+}
+
 .artboard > img {
   display: block;
   width: 100%;
@@ -2778,7 +2782,7 @@ body:not(.debug-enabled) .debug-panel {
   margin: 0 auto;
   transform: translateY(var(--shop-product-y)) scale(var(--shop-product-scale));
 }
-.shop-card h2 { margin: 5% 0 2%; text-align: center; }
+.shop-card h2 { margin: 5% 0 2%; text-align: center; transform: translateY(14px); }
 .shop-card footer {
   left: 8%;
   right: 8%;
@@ -2927,6 +2931,85 @@ body:not(.debug-enabled) .debug-panel {
 .daily-box-dialog-results li { display: grid; grid-template-columns: 2.2em 1fr; gap: 5px 10px; padding: 8px 10px; border: 1px solid rgba(213, 175, 109, .22); background: rgba(11, 17, 30, .38); }
 .daily-box-dialog-results li i { color: rgba(218, 193, 151, .65); font-size: 12px; font-style: normal; }
 .daily-box-dialog-results li span { color: #f0d39b; font-size: 12px; }
+
+@media (orientation: portrait) and (max-width: 900px) {
+  .terminal-dialog {
+    align-items: center;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .terminal-dialog-panel {
+    width: min(390px, calc(100vw - 20px));
+    max-height: calc(100dvh - 20px);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    background-size: 100% 100%;
+  }
+
+  .terminal-dialog-panel header {
+    padding: 34px 46px 8px;
+  }
+
+  .terminal-dialog-panel header > span {
+    font-size: 8px;
+  }
+
+  .terminal-dialog-panel h2 {
+    font-size: 20px;
+    line-height: 1.25;
+    letter-spacing: .12em;
+  }
+
+  .terminal-dialog-panel header button {
+    right: 10px;
+    top: 10px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .terminal-dialog-body {
+    max-height: none;
+    min-height: 0;
+    padding: 14px 36px 10px;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.65;
+    text-align: left;
+  }
+
+  .terminal-dialog-body dl {
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 7px 10px;
+  }
+
+  .terminal-dialog-body input,
+  .terminal-dialog-body select {
+    min-height: 42px;
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+
+  .terminal-dialog-panel footer {
+    gap: 8px;
+    padding: 8px 30px 30px;
+  }
+
+  .terminal-dialog-panel footer button {
+    min-width: 126px;
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  .daily-box-dialog-results {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .dialog-gallery-preview img {
+    max-height: 54dvh;
+  }
+}
 
 @keyframes summon-card-reveal { from { opacity: 0; transform: translateY(22px) scale(.82); filter: brightness(2.1) blur(4px); } 55% { filter: brightness(1.7) blur(0); } to { opacity: 1; transform: none; filter: brightness(1); } }
 @keyframes summon-light-spin { to { transform: rotate(360deg); } }

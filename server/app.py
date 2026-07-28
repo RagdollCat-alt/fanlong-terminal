@@ -93,6 +93,13 @@ def summon_catalog() -> list[dict]:
     return result
 
 
+def ensure_game_tables(database_path: Path) -> None:
+    migration_dir = Path(__file__).resolve().with_name("migrations")
+    with connect(database_path) as db:
+        for migration in sorted(migration_dir.glob("*.sql")):
+            db.executescript(migration.read_text(encoding="utf-8"))
+
+
 def create_app(settings: Settings | None = None) -> Flask:
     app = Flask(__name__)
     app.config["JSON_AS_ASCII"] = False
@@ -102,6 +109,7 @@ def create_app(settings: Settings | None = None) -> Flask:
     if not active.fanlong_db_path.is_file():
         raise RuntimeError(f"找不到 fanlong.db：{active.fanlong_db_path}")
     init_terminal_db(active.terminal_db_path)
+    ensure_game_tables(active.fanlong_db_path)
     active.upload_dir.mkdir(parents=True, exist_ok=True)
 
     def payload(ok: bool, code: str, message: str, data: Any = None, status: int = 200):
