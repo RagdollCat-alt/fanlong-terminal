@@ -1262,6 +1262,7 @@ function renderGallery() {
       title: `${card.name} · ${card.rarity}`,
       hideConfirm: true,
       cancelLabel: '关闭大图',
+      dialogClass: 'dialog-gallery-card',
       html: `<figure class="dialog-gallery-preview"><img src="${encodeURI(optimizedCardImage(card.image))}" alt="${escapeHtml(card.name)}" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'"><figcaption>${escapeHtml(card.name)} · ${card.rarity} · 已获得 ${card.copies || 1} 张</figcaption></figure>`
     });
   }));
@@ -1305,12 +1306,17 @@ function renderSummonResults(result) {
   grid.classList.toggle('is-single', result.results.length === 1);
   document.querySelector('#summonResultSummary').textContent = `共获得 ${result.results.length} 个角色`;
   grid.innerHTML = result.results.map((card, index) => `
-    <article class="summon-result-card rarity-${card.rarity.toLowerCase()}" style="--result-delay:${index * 90}ms">
-      <div class="summon-card-light" aria-hidden="true"></div>
-      <img src="${encodeURI(optimizedCardImage(card.image))}" alt="${escapeHtml(card.name)}" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
-      <span class="summon-card-rarity">${card.rarity}</span>
-      ${card.isNew ? '<i>NEW</i>' : ''}
-      <strong>${escapeHtml(card.name)}</strong>
+    <article class="summon-result-card rarity-${card.rarity.toLowerCase()}" style="--result-delay:${index * 95}ms; --flip-delay:${720 + index * 135}ms">
+      <div class="summon-card-inner">
+        <div class="summon-card-face summon-card-back" aria-hidden="true"></div>
+        <div class="summon-card-face summon-card-front">
+          <div class="summon-card-light" aria-hidden="true"></div>
+          <img src="${encodeURI(optimizedCardImage(card.image))}" alt="${escapeHtml(card.name)}" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
+          <span class="summon-card-rarity">${card.rarity}</span>
+          ${card.isNew ? '<i>NEW</i>' : ''}
+          <strong>${escapeHtml(card.name)}</strong>
+        </div>
+      </div>
     </article>`).join('');
   showScreen(summonResultScreen);
 }

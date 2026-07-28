@@ -2860,6 +2860,13 @@ body:not(.debug-enabled) .debug-panel {
 .terminal-dialog-panel { width: min(724px, 90vw); border: 0; background: center / 100% 100% no-repeat url("assets/ui/web/弹窗底板.webp"); box-shadow: 0 28px 80px rgba(0, 0, 0, .7), 0 0 28px rgba(236, 195, 122, .18); clip-path: none; }
 .terminal-dialog-panel.dialog-social-profile header { padding-top: 60px; }
 .terminal-dialog-panel.dialog-social-profile .terminal-dialog-body { text-align: left; }
+.terminal-dialog-panel.dialog-gallery-card { width: min(580px, 84vw); }
+.terminal-dialog-panel.dialog-gallery-card header { padding: 34px 64px 8px; }
+.terminal-dialog-panel.dialog-gallery-card .terminal-dialog-body { max-height: none; padding: 8px 52px 4px; overflow: visible; }
+.terminal-dialog-panel.dialog-gallery-card footer { padding: 8px 58px 34px; }
+.terminal-dialog-panel.dialog-gallery-card .dialog-gallery-preview { display: grid; justify-items: center; gap: 8px; }
+.terminal-dialog-panel.dialog-gallery-card .dialog-gallery-preview img { width: auto; max-width: min(100%, 390px); max-height: min(64vh, 610px); object-fit: contain; }
+.terminal-dialog-panel.dialog-gallery-card .dialog-gallery-preview figcaption { margin: 0; font-size: 11px; line-height: 1.4; }
 .toast { z-index: 220; }
 .terminal-dialog-panel::before { display: none; }
 .terminal-dialog-panel header { padding: 44px 72px 16px; border-bottom: 0; text-align: center; }
@@ -2907,13 +2914,17 @@ body:not(.debug-enabled) .debug-panel {
 .summon-details-link { position: absolute; z-index: 5; left: 36.4%; bottom: 10.7%; width: 15%; height: 5.5%; padding: 0; overflow: hidden; border: 0; color: transparent; background: transparent; font-size: 0; cursor: pointer; }
 
 .summon-result-summary { position: absolute; z-index: 4; left: 33%; right: 33%; top: 23.5%; margin: 0; color: #e4c998; font-size: clamp(12px, 1.05cqw, 18px); letter-spacing: .12em; text-align: center; }
-.summon-result-grid { position: absolute; z-index: 4; left: 8.8%; right: 8.8%; top: 30.5%; height: 38.5%; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: .35%; }
+.summon-result-grid { position: absolute; z-index: 4; left: 8.8%; right: 8.8%; top: 30.5%; height: 38.5%; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: .35%; perspective: 1200px; }
 .summon-result-grid.is-single { left: 41%; right: 41%; grid-template-columns: 1fr; }
-.summon-result-card { position: relative; min-width: 0; overflow: hidden; border: 1px solid rgba(154, 203, 224, .72); background: #080d16; box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .9), 0 0 16px rgba(101, 186, 219, .18); opacity: 0; animation: summon-card-reveal .7s cubic-bezier(.18,.8,.24,1) forwards; animation-delay: var(--result-delay); }
-.summon-result-card.rarity-sr { border-color: rgba(202, 148, 232, .86); box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .9), 0 0 19px rgba(180, 89, 227, .34); }
-.summon-result-card.rarity-ssr { border-color: rgba(255, 214, 136, .95); box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .82), 0 0 25px rgba(248, 184, 68, .62); }
-.summon-result-card img { width: 100%; height: 100%; object-fit: cover; object-position: center 28%; }
-.summon-result-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 54%, rgba(3, 6, 12, .96)); pointer-events: none; }
+.summon-result-card { position: relative; min-width: 0; opacity: 0; transform-style: preserve-3d; animation: summon-card-reveal .62s cubic-bezier(.18,.8,.24,1) forwards; animation-delay: var(--result-delay); }
+.summon-card-inner { position: absolute; inset: 0; transform-style: preserve-3d; animation: summon-card-flip .78s cubic-bezier(.2,.78,.24,1) forwards; animation-delay: var(--flip-delay); }
+.summon-card-face { position: absolute; inset: 0; overflow: hidden; border: 1px solid rgba(154, 203, 224, .72); background: #080d16; box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .9), 0 0 16px rgba(101, 186, 219, .18); backface-visibility: hidden; transform: translateZ(0); }
+.summon-card-back { background: #070b13 center / cover no-repeat url("assets/generated/fanlong-card-back-v1.png"); }
+.summon-card-front { transform: rotateY(180deg); }
+.rarity-sr .summon-card-face { border-color: rgba(202, 148, 232, .86); box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .9), 0 0 19px rgba(180, 89, 227, .34); }
+.rarity-ssr .summon-card-face { border-color: rgba(255, 214, 136, .95); box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .82), 0 0 25px rgba(248, 184, 68, .62); }
+.summon-result-card img { width: 100%; height: 100%; object-fit: contain; object-position: center; background: #050812; }
+.summon-card-front::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 54%, rgba(3, 6, 12, .96)); pointer-events: none; }
 .summon-card-light { position: absolute; z-index: 2; inset: -40%; background: conic-gradient(transparent, rgba(150, 220, 255, .32), transparent 18%, rgba(150, 220, 255, .2), transparent 45%); animation: summon-light-spin 3.2s linear infinite; pointer-events: none; }
 .rarity-sr .summon-card-light { background: conic-gradient(transparent, rgba(214, 145, 255, .45), transparent 18%, rgba(214, 145, 255, .24), transparent 45%); }
 .rarity-ssr .summon-card-light { background: conic-gradient(transparent, rgba(255, 226, 147, .66), transparent 18%, rgba(255, 195, 79, .34), transparent 45%); }
@@ -3019,7 +3030,30 @@ body:not(.debug-enabled) .debug-panel {
     max-height: 54dvh;
   }
 
+  body.is-portrait-canvas .terminal-dialog-panel.dialog-gallery-card {
+    width: min(650px, calc(82dvh - 18px));
+    max-height: calc(94vw - 18px);
+  }
+
+  body.is-portrait-canvas .terminal-dialog-panel.dialog-gallery-card header {
+    padding: 24px 54px 4px;
+  }
+
+  body.is-portrait-canvas .terminal-dialog-panel.dialog-gallery-card .terminal-dialog-body {
+    padding: 4px 42px 2px;
+  }
+
+  body.is-portrait-canvas .terminal-dialog-panel.dialog-gallery-card .dialog-gallery-preview img {
+    max-width: min(100%, 330px);
+    max-height: min(58dvh, 520px);
+  }
+
+  body.is-portrait-canvas .terminal-dialog-panel.dialog-gallery-card footer {
+    padding: 4px 48px 24px;
+  }
+
 }
 
-@keyframes summon-card-reveal { from { opacity: 0; transform: translateY(22px) scale(.82); filter: brightness(2.1) blur(4px); } 55% { filter: brightness(1.7) blur(0); } to { opacity: 1; transform: none; filter: brightness(1); } }
+@keyframes summon-card-reveal { from { opacity: 0; transform: translateY(20px) scale(.88); filter: brightness(1.8) blur(3px); } 55% { filter: brightness(1.45) blur(0); } to { opacity: 1; transform: none; filter: brightness(1); } }
+@keyframes summon-card-flip { 0%, 24% { transform: rotateY(0deg) scale(1); } 58% { transform: rotateY(96deg) scale(1.04); } 100% { transform: rotateY(180deg) scale(1); } }
 @keyframes summon-light-spin { to { transform: rotate(360deg); } }
