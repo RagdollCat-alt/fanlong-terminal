@@ -197,6 +197,36 @@ function optimizedCardImage(path) {
     .replace(/\.(png|jpe?g)$/i, '.webp');
 }
 
+const warmedImageUrls = new Set();
+function preloadImage(url) {
+  if (!url || warmedImageUrls.has(url)) return Promise.resolve();
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => { warmedImageUrls.add(url); resolve(); };
+    image.onerror = () => resolve();
+    image.src = url;
+  });
+}
+
+function preloadImages(urls, limit = 4) {
+  const queue = [...new Set(urls.filter(Boolean))];
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
+    while (cursor < queue.length) {
+      const url = queue[cursor];
+      cursor += 1;
+      await preloadImage(url);
+    }
+  });
+  return Promise.all(workers);
+}
+
+function warmupSummonCards(cards = galleryCards, limit = 6) {
+  const urls = cards.slice(0, limit).map((card) => optimizedCardImage(card.image));
+  scheduleAssetWarmup(() => preloadImages(urls, 3));
+}
+
 function showScreen(nextScreen) {
   hydrateScreenAssets(nextScreen);
   gameScreens.forEach((screen) => {
@@ -1289,6 +1319,7 @@ function applySummonState(data) {
     document.querySelectorAll('.gallery-currency strong').forEach((element) => { element.textContent = summonData.balance; });
   }
   renderGallery();
+  warmupSummonCards();
 }
 
 async function loadSummonState() {
@@ -1333,6 +1364,8 @@ function confirmSummon(count) {
       const result = await apiRequest('/api/summon/draw', {
         method: 'POST', headers: operationHeaders(`summon-${count}`), body: JSON.stringify({ count })
       });
+      const resultImages = (result.results || []).map((card) => optimizedCardImage(card.image));
+      await preloadImages(resultImages, count === 10 ? 5 : 1);
       closeTerminalDialog();
       summonData.balance = result.balance;
       renderSummonResults(result);
