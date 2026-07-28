@@ -1,3 +1,5 @@
+import https from 'node:https';
+
 const UPSTREAM_ORIGIN = 'https://fanlong-api.huaian.cloud';
 const REQUEST_HEADERS = [
   'accept',
@@ -30,15 +32,45 @@ async function readBody(request) {
   return chunks.length ? Buffer.concat(chunks) : undefined;
 }
 
+function sendUpstream(url, method, headers, body) {
+  return new Promise((resolve, reject) => {
+    const upstreamRequest = https.request({
+      protocol: url.protocol,
+      hostname: url.hostname,
+      port: 443,
+      path: `${url.pathname}${url.search}`,
+      method,
+      headers: Object.fromEntries(headers.entries()),
+      family: 4,
+      servername: url.hostname,
+      minVersion: 'TLSv1.2',
+      maxVersion: 'TLSv1.2',
+    }, (upstreamResponse) => {
+      const chunks = [];
+      upstreamResponse.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+      upstreamResponse.on('end', () => resolve({
+        status: upstreamResponse.statusCode || 502,
+        headers: upstreamResponse.headers,
+        body: Buffer.concat(chunks),
+      }));
+    });
+    upstreamRequest.setTimeout(20000, () => {
+      const timeoutError = new Error('Upstream request timed out');
+      timeoutError.code = 'ETIMEDOUT';
+      upstreamRequest.destroy(timeoutError);
+    });
+    upstreamRequest.on('error', reject);
+    if (body) upstreamRequest.write(body);
+    upstreamRequest.end();
+  });
+}
+
 function requestPath(request) {
   const requestUrl = new URL(request.url, 'https://terminal.rpg0707.com');
   return `${requestUrl.pathname}${requestUrl.search}`;
 }
 
 export default async function handler(request, response) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-
   try {
     const headers = new Headers();
     for (const name of REQUEST_HEADERS) {
@@ -49,28 +81,22 @@ export default async function handler(request, response) {
     headers.set('x-forwarded-proto', 'https');
 
     const method = String(request.method || 'GET').toUpperCase();
-    const upstream = await fetch(`${UPSTREAM_ORIGIN}${requestPath(request)}`, {
-      method,
-      headers,
-      body: ['GET', 'HEAD'].includes(method) ? undefined : await readBody(request),
-      redirect: 'manual',
-      signal: controller.signal,
-    });
+    const target = new URL(`${UPSTREAM_ORIGIN}${requestPath(request)}`);
+    const body = ['GET', 'HEAD'].includes(method) ? undefined : await readBody(request);
+    const upstream = await sendUpstream(target, method, headers, body);
 
     response.status(upstream.status);
     for (const name of RESPONSE_HEADERS) {
-      const value = upstream.headers.get(name);
+      const value = upstream.headers[name];
       if (value) response.setHeader(name, value);
     }
-    const combinedCookie = upstream.headers.get('set-cookie') || '';
-    const cookies = typeof upstream.headers.getSetCookie === 'function'
-      ? upstream.headers.getSetCookie()
-      : combinedCookie.split(/,(?=\s*[^;,=\s]+=[^;,]+)/).filter(Boolean);
+    const cookies = upstream.headers['set-cookie'] || [];
     if (cookies.length) response.setHeader('set-cookie', cookies);
     response.setHeader('cache-control', 'private, no-store, max-age=0');
-    response.send(Buffer.from(await upstream.arrayBuffer()));
+    response.send(upstream.body);
   } catch (error) {
-    const timedOut = error?.name === 'AbortError';
+    console.error('API upstream request failed', error?.code || error?.message);
+    const timedOut = error?.code === 'ETIMEDOUT';
     response.status(timedOut ? 504 : 502).json({
       ok: false,
       code: timedOut ? 'UPSTREAM_TIMEOUT' : 'UPSTREAM_UNAVAILABLE',
@@ -78,7 +104,5 @@ export default async function handler(request, response) {
       data: null,
       requestId: request.headers['x-request-id'] || null,
     });
-  } finally {
-    clearTimeout(timeout);
   }
 }
