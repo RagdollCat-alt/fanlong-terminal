@@ -2210,18 +2210,20 @@ body:not(.debug-enabled) .debug-panel {
 
 @media (max-width: 760px) and (orientation: portrait) {
   .screen {
-    display: grid;
-    place-items: center;
+    display: block;
     overflow: hidden;
   }
 
   .artboard {
+    position: absolute;
+    left: 50%;
+    top: 50%;
     width: min(100dvh, calc(100dvw * 1672 / 941));
     min-width: 0;
     height: auto;
     max-width: none;
     box-shadow: none;
-    transform: rotate(90deg);
+    transform: translate(-50%, -50%) rotate(90deg);
     transform-origin: center;
   }
 
