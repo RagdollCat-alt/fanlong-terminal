@@ -1484,6 +1484,8 @@ function apiMemoryEntry(item, existing = {}) {
     people: splitMemoryPeople(item.participants),
     words: Number(item.words || content.length || 0),
     reward: item.note || '以档案结算记录为准',
+    mine: memoryFilter === 'mine' || Boolean(existing.mine),
+    today: memoryFilter === 'today' || Boolean(existing.today),
     favorite: Boolean(item.favorite),
     summary: item.note || (item.recorder ? `记录人：${item.recorder}` : '点击查看完整剧情记录'),
     body: body.length ? body : (existing.body || ['暂无正文记录'])
