@@ -2938,76 +2938,91 @@ body:not(.debug-enabled) .debug-panel {
     padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   }
 
-  .terminal-dialog-panel {
-    width: min(390px, calc(100vw - 20px));
-    max-height: calc(100dvh - 20px);
+  body.is-portrait-canvas .terminal-dialog-panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(724px, calc(100dvh - 24px));
+    max-height: calc(100vw - 24px);
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     background-size: 100% 100%;
+    transform: translate(-50%, -50%) rotate(-90deg) scale(.985);
+    transform-origin: center;
   }
 
-  .terminal-dialog-panel header {
-    padding: 34px 46px 8px;
+  body.is-portrait-canvas .terminal-dialog.is-open .terminal-dialog-panel {
+    transform: translate(-50%, -50%) rotate(-90deg) scale(1);
   }
 
-  .terminal-dialog-panel header > span {
+  body.is-portrait-canvas .terminal-dialog-panel header {
+    padding: 34px 64px 10px;
+  }
+
+  body.is-portrait-canvas .terminal-dialog-panel header > span {
     font-size: 8px;
   }
 
-  .terminal-dialog-panel h2 {
-    font-size: 20px;
+  body.is-portrait-canvas .terminal-dialog-panel h2 {
+    font-size: 22px;
     line-height: 1.25;
     letter-spacing: .12em;
   }
 
-  .terminal-dialog-panel header button {
-    right: 10px;
-    top: 10px;
-    width: 32px;
-    height: 32px;
+  body.is-portrait-canvas .terminal-dialog-panel header button {
+    right: 14px;
+    top: 12px;
+    width: 34px;
+    height: 34px;
   }
 
-  .terminal-dialog-body {
+  body.is-portrait-canvas .terminal-dialog-body {
     max-height: none;
     min-height: 0;
-    padding: 14px 36px 10px;
+    padding: 14px 58px 10px;
     overflow-y: auto;
     font-size: 12px;
     line-height: 1.65;
     text-align: left;
   }
 
-  .terminal-dialog-body dl {
+  body.is-portrait-canvas .terminal-dialog-body dl {
     grid-template-columns: 74px minmax(0, 1fr);
     gap: 7px 10px;
   }
 
-  .terminal-dialog-body input,
-  .terminal-dialog-body select {
+  body.is-portrait-canvas .terminal-dialog-body input,
+  body.is-portrait-canvas .terminal-dialog-body select {
     min-height: 42px;
     padding: 10px 12px;
     font-size: 16px;
   }
 
-  .terminal-dialog-panel footer {
+  body.is-portrait-canvas .terminal-dialog-panel footer {
     gap: 8px;
-    padding: 8px 30px 30px;
+    padding: 8px 58px 30px;
   }
 
-  .terminal-dialog-panel footer button {
-    min-width: 126px;
+  body.is-portrait-canvas .terminal-dialog-panel footer button {
+    min-width: 150px;
     min-height: 42px;
     padding: 0 14px;
     font-size: 13px;
   }
 
-  .daily-box-dialog-results {
+  body.is-portrait-canvas .daily-box-dialog-results {
     grid-template-columns: 1fr;
     max-height: none;
   }
 
-  .dialog-gallery-preview img {
+  body.is-portrait-canvas .dialog-gallery-preview img {
     max-height: 54dvh;
+  }
+
+  body.is-text-editing .terminal-dialog-panel {
+    width: min(390px, calc(100vw - 20px));
+    max-height: calc(100dvh - 20px);
+    transform: translateY(0) scale(1);
   }
 }
 
