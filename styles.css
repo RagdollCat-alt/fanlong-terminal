@@ -2919,11 +2919,38 @@ body:not(.debug-enabled) .debug-panel {
 .summon-result-card { position: relative; min-width: 0; opacity: 0; transform-style: preserve-3d; animation: summon-card-reveal .62s cubic-bezier(.18,.8,.24,1) forwards; animation-delay: var(--result-delay); }
 .summon-card-inner { position: absolute; inset: 0; transform-style: preserve-3d; animation: summon-card-flip .78s cubic-bezier(.2,.78,.24,1) forwards; animation-delay: var(--flip-delay); }
 .summon-card-face { position: absolute; inset: 0; overflow: hidden; border: 1px solid rgba(154, 203, 224, .72); background: #080d16; box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .9), 0 0 16px rgba(101, 186, 219, .18); backface-visibility: hidden; transform: translateZ(0); }
-.summon-card-back { background: #070b13 center / cover no-repeat url("assets/generated/fanlong-card-back-v1.png"); }
+.summon-card-back {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(244, 205, 129, .18) 0 2px, transparent 3px),
+    radial-gradient(circle at 50% 50%, transparent 0 21%, rgba(212, 170, 95, .28) 21.4% 21.8%, transparent 22.2% 31%, rgba(212, 170, 95, .2) 31.4% 31.8%, transparent 32.2%),
+    linear-gradient(90deg, transparent 49.6%, rgba(221, 184, 112, .24) 49.8% 50.2%, transparent 50.4%),
+    linear-gradient(0deg, transparent 49.6%, rgba(221, 184, 112, .2) 49.8% 50.2%, transparent 50.4%),
+    radial-gradient(ellipse at 50% 38%, rgba(77, 92, 133, .28), transparent 46%),
+    linear-gradient(145deg, #0b111f, #02050b 58%, #111827);
+}
+.summon-card-back::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border: 1px solid rgba(225, 187, 114, .58);
+  box-shadow: inset 0 0 0 1px rgba(6, 10, 18, .88), inset 0 0 22px rgba(227, 180, 89, .12), 0 0 14px rgba(228, 181, 91, .16);
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+}
+.summon-card-back::after {
+  content: "FANLONG";
+  position: relative;
+  color: rgba(239, 209, 154, .82);
+  font: clamp(7px, .65cqw, 11px) Georgia, serif;
+  letter-spacing: .28em;
+  text-shadow: 0 0 10px rgba(238, 195, 111, .34);
+  writing-mode: vertical-rl;
+}
 .summon-card-front { transform: rotateY(180deg); }
 .rarity-sr .summon-card-face { border-color: rgba(202, 148, 232, .86); box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .9), 0 0 19px rgba(180, 89, 227, .34); }
 .rarity-ssr .summon-card-face { border-color: rgba(255, 214, 136, .95); box-shadow: inset 0 0 0 2px rgba(5, 9, 16, .82), 0 0 25px rgba(248, 184, 68, .62); }
-.summon-result-card img { width: 100%; height: 100%; object-fit: contain; object-position: center; background: #050812; }
+.summon-result-card img { width: 100%; height: 100%; object-fit: cover; object-position: center 28%; }
 .summon-card-front::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 54%, rgba(3, 6, 12, .96)); pointer-events: none; }
 .summon-card-light { position: absolute; z-index: 2; inset: -40%; background: conic-gradient(transparent, rgba(150, 220, 255, .32), transparent 18%, rgba(150, 220, 255, .2), transparent 45%); animation: summon-light-spin 3.2s linear infinite; pointer-events: none; }
 .rarity-sr .summon-card-light { background: conic-gradient(transparent, rgba(214, 145, 255, .45), transparent 18%, rgba(214, 145, 255, .24), transparent 45%); }
