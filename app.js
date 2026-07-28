@@ -40,9 +40,9 @@ let dialogConfirmHandler = null;
 let isTextEditing = false;
 
 function updateGameLayout() {
-  const viewportWidth = window.visualViewport?.width || window.innerWidth;
-  const viewportHeight = window.visualViewport?.height || window.innerHeight;
-  const portraitCanvas = !isTextEditing && viewportWidth < viewportHeight && Math.min(viewportWidth, viewportHeight) <= 900;
+  const viewportWidth = isTextEditing ? window.innerWidth : (window.visualViewport?.width || window.innerWidth);
+  const viewportHeight = isTextEditing ? window.innerHeight : (window.visualViewport?.height || window.innerHeight);
+  const portraitCanvas = viewportWidth < viewportHeight && Math.min(viewportWidth, viewportHeight) <= 900;
   const scale = portraitCanvas
     ? Math.min(viewportWidth / 941, viewportHeight / 1672)
     : Math.min(viewportWidth / 1672, viewportHeight / 941);
@@ -250,7 +250,7 @@ function enterHome() {
 
 function showToast(label) {
   clearTimeout(toastTimer);
-  toast.textContent = label === '首页' ? '已在首页' : /(已|请|正在|暂不可用)/.test(label) ? label : `${label}功能暂不可用`;
+  toast.textContent = label === '首页' ? '已在首页' : /(已|请|正在|成功|完成|失败|错误|不足|超时|不可用|不可使用|上限|登录|请输入|无法|未找到|不存在|失效|校验|选择)/.test(label) ? label : `${label}功能暂不可用`;
   toast.classList.add('is-visible');
   toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
 }
@@ -635,6 +635,10 @@ function applyDailyApiState(state) {
     document.querySelector('#reputation').textContent = state.currency.reputation;
     document.querySelector('#bagCurrency').textContent = state.currency.yuCoin;
     document.querySelector('#bagReputation').textContent = state.currency.reputation;
+    document.querySelectorAll('.gallery-currency strong').forEach((element) => { element.textContent = state.currency.yuCoin; });
+    document.querySelectorAll('.gallery-reputation strong').forEach((element) => { element.textContent = state.currency.reputation; });
+    document.querySelector('#shopCurrency').textContent = state.currency.yuCoin;
+    document.querySelector('#shopReputation').textContent = state.currency.reputation;
   }
   renderDaily();
 }
@@ -691,7 +695,7 @@ dailyTrainingAction.addEventListener('click', async () => {
     try {
       const result = await apiRequest('/api/daily/train', { method: 'POST', headers: operationHeaders('train') });
       await refreshDailyFromApi();
-      showToast(`${result.reward.label}${result.reward.amount ? ' +1' : ' 已达上限'}`);
+      showToast(`训练成功·${result.reward.label}${result.reward.amount ? ' +1' : ' 已达上限'}`);
     } catch (error) { showToast(error.message); renderDaily(); }
     return;
   }
@@ -1281,6 +1285,7 @@ function applySummonState(data) {
     document.querySelector('#currency').textContent = summonData.balance;
     document.querySelector('#bagCurrency').textContent = summonData.balance;
     document.querySelector('#shopCurrency').textContent = summonData.balance;
+    document.querySelectorAll('.gallery-currency strong').forEach((element) => { element.textContent = summonData.balance; });
   }
   renderGallery();
 }

@@ -130,10 +130,6 @@ body.is-portrait-canvas .artboard {
   transform: rotate(90deg) scale(var(--game-scale, 1));
 }
 
-body.is-text-editing .artboard {
-  transform: scale(var(--game-scale, 1));
-}
-
 .artboard > img {
   display: block;
   width: 100%;
@@ -3023,11 +3019,6 @@ body:not(.debug-enabled) .debug-panel {
     max-height: 54dvh;
   }
 
-  body.is-text-editing .terminal-dialog-panel {
-    width: min(390px, calc(100vw - 20px));
-    max-height: calc(100dvh - 20px);
-    transform: translateY(0) scale(1);
-  }
 }
 
 @keyframes summon-card-reveal { from { opacity: 0; transform: translateY(22px) scale(.82); filter: brightness(2.1) blur(4px); } 55% { filter: brightness(1.7) blur(0); } to { opacity: 1; transform: none; filter: brightness(1); } }
