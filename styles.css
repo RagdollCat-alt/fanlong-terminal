@@ -2231,6 +2231,24 @@ body:not(.debug-enabled) .debug-panel {
   }
 }
 
+@media (max-height: 760px) and (orientation: landscape) {
+  .screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .artboard {
+    flex: 0 0 auto;
+    width: 100vw;
+    max-width: none;
+    min-width: 100vw;
+    height: auto;
+    box-shadow: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .01ms !important;
