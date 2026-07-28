@@ -98,25 +98,12 @@ function showScreen(nextScreen) {
     screen.classList.toggle('is-active', active);
     screen.setAttribute('aria-hidden', String(!active));
   });
-  centerActiveScreen(nextScreen);
 }
 
 function enterLogin() {
   showScreen(login);
   window.setTimeout(() => document.querySelector('#account').focus(), 500);
 }
-
-function centerActiveScreen(screen) {
-  if (!screen) return;
-  requestAnimationFrame(() => {
-    const overflow = screen.scrollWidth - screen.clientWidth;
-    if (overflow > 0) screen.scrollLeft = overflow / 2;
-  });
-}
-
-window.addEventListener('resize', () => {
-  centerActiveScreen(document.querySelector('.screen.is-active'));
-});
 
 function enterLoading() {
   showScreen(loading);
