@@ -5,7 +5,7 @@
 ```text
 terminal.rpg0707.com
   -> Vercel 静态页面
-  -> 同源 /api/* Serverless 代理
+  -> 浏览器 HTTPS + Bearer 会话
   -> https://fanlong-api.huaian.cloud
   -> Windows 宝塔 Nginx
   -> 127.0.0.1:5002
@@ -52,7 +52,7 @@ TERMINAL_ALLOWED_ORIGINS=https://terminal.rpg0707.com
 2. 配置上述环境变量后运行 `python run_game_migrations.py`，人工输入 `MIGRATE`。
 3. 确认输出 `integrity_check=ok` 后再恢复机器人，并安装/启动 NSSM 服务。
 4. 保留 `fanlong-api.huaian.cloud` 的 HTTPS 和到 `127.0.0.1:5002` 的反向代理。
-5. `terminal.rpg0707.com` 的 Vercel 项目 Root Directory 指向 `代码`；`api/[...path].js` 会把同源 `/api/*` 请求转发到后端。
-6. 验证 `https://terminal.rpg0707.com/api/health` 返回 `ok: true`，再测试首次设密、退出重登、背包、服饰、日常、商城、剧情和社交。
+5. `terminal.rpg0707.com` 的 Vercel 项目 Root Directory 指向 `代码`；前端通过 HTTPS 直连后端，并使用 `sessionStorage` 中的 Bearer 会话，避免跨站 Cookie 失效。
+6. 验证 `https://fanlong-api.huaian.cloud/api/health` 返回 `ok: true`，再测试首次设密、退出重登、背包、服饰、日常、商城、剧情和社交。
 
 正式执行服务器操作时应逐步进行，每一步核对输出后再继续，避免与正在写数据库的机器人同时迁移。

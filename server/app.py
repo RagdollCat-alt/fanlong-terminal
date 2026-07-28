@@ -164,8 +164,13 @@ def create_app(settings: Settings | None = None) -> Flask:
         )
         return session_token, csrf_token
 
+    def bearer_token() -> str:
+        authorization = request.headers.get("Authorization", "")
+        scheme, _, value = authorization.partition(" ")
+        return value.strip() if scheme.lower() == "bearer" else ""
+
     def current_session() -> sqlite3.Row | None:
-        raw = request.cookies.get(SESSION_COOKIE, "")
+        raw = bearer_token() or request.cookies.get(SESSION_COOKIE, "")
         if not raw:
             return None
         with connect(active.terminal_db_path) as db:
@@ -191,7 +196,8 @@ def create_app(settings: Settings | None = None) -> Flask:
                 if write:
                     csrf = request.headers.get("X-CSRF-Token", "")
                     cookie_csrf = request.cookies.get(CSRF_COOKIE, "")
-                    if not csrf or csrf != cookie_csrf or token_hash(csrf) != session["csrf_hash"]:
+                    csrf_matches_transport = bool(bearer_token()) or csrf == cookie_csrf
+                    if not csrf or not csrf_matches_transport or token_hash(csrf) != session["csrf_hash"]:
                         return payload(False, "CSRF_INVALID", "安全校验失败，请刷新后重试", status=403)
                 g.qq_id = session["qq_id"]
                 g.session = session
@@ -251,7 +257,7 @@ def create_app(settings: Settings | None = None) -> Flask:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRF-Token, Idempotency-Key"
+            response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, X-CSRF-Token, Idempotency-Key"
             response.headers.add("Vary", "Origin")
         return response
 
@@ -303,7 +309,11 @@ def create_app(settings: Settings | None = None) -> Flask:
         except sqlite3.IntegrityError:
             audit(qq_id, "auth.initialize", qq_id, "race_lost")
             return payload(False, "ACCOUNT_EXISTS", "该账号已完成首次设密，请直接登录", status=409)
-        response, status = payload(True, "ACCOUNT_CREATED", "首次设密成功", {"mustChangePassword": False, "csrfToken": csrf_token})
+        response, status = payload(True, "ACCOUNT_CREATED", "首次设密成功", {
+            "mustChangePassword": False,
+            "csrfToken": csrf_token,
+            "sessionToken": session_token,
+        })
         set_auth_cookies(response, session_token, csrf_token)
         return response, status
 
@@ -329,7 +339,11 @@ def create_app(settings: Settings | None = None) -> Flask:
             True,
             "OK",
             "登录成功",
-            {"mustChangePassword": bool(account["must_change_password"]), "csrfToken": csrf_token},
+            {
+                "mustChangePassword": bool(account["must_change_password"]),
+                "csrfToken": csrf_token,
+                "sessionToken": session_token,
+            },
         )
         set_auth_cookies(response, session_token, csrf_token)
         return response, status
@@ -363,7 +377,10 @@ def create_app(settings: Settings | None = None) -> Flask:
             db.execute("UPDATE web_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE qq_id=?", (g.qq_id,))
             session_token, csrf_token = create_session(db, g.qq_id)
         audit(g.qq_id, "auth.password.change", g.qq_id, "success")
-        response, status = payload(True, "OK", "密码修改成功")
+        response, status = payload(True, "OK", "密码修改成功", {
+            "csrfToken": csrf_token,
+            "sessionToken": session_token,
+        })
         set_auth_cookies(response, session_token, csrf_token)
         return response, status
 

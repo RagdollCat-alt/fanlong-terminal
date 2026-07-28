@@ -1,7 +1,8 @@
 const opening = document.querySelector('#opening');
 const searchParams = new URLSearchParams(window.location.search);
-const API_ORIGIN = '';
+const API_ORIGIN = 'https://fanlong-api.huaian.cloud';
 let csrfToken = sessionStorage.getItem('fanlong_csrf') || '';
+let sessionToken = sessionStorage.getItem('fanlong_session_token') || '';
 if (searchParams.has('memories') || searchParams.has('memory') || searchParams.has('gallery') || searchParams.has('archive') || searchParams.has('daily') || searchParams.has('social') || searchParams.has('summon') || searchParams.has('summonResult') || searchParams.has('shop') || searchParams.has('bag') || searchParams.has('activity')) {
   document.body.classList.add('is-previewing');
 }
@@ -119,6 +120,7 @@ async function apiRequest(path, options = {}) {
   const timeoutMs = Number(options.timeoutMs || 15000);
   const headers = new Headers(options.headers || {});
   if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
+  if (sessionToken) headers.set('Authorization', `Bearer ${sessionToken}`);
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     const csrf = csrfToken || decodeURIComponent(readCookie('fanlong_csrf'));
     if (csrf) headers.set('X-CSRF-Token', csrf);
@@ -146,6 +148,12 @@ async function apiRequest(path, options = {}) {
     result = { ok: false, code: 'INVALID_RESPONSE', message: `服务器返回格式不正确（HTTP ${response.status}：${preview}）` };
   }
   if (!response.ok || !result.ok) {
+    if (result.code === 'AUTH_REQUIRED') {
+      sessionToken = '';
+      csrfToken = '';
+      sessionStorage.removeItem('fanlong_session_token');
+      sessionStorage.removeItem('fanlong_csrf');
+    }
     const error = new Error(result.message || `请求失败（${response.status}）`);
     error.code = result.code;
     error.status = response.status;
@@ -155,6 +163,10 @@ async function apiRequest(path, options = {}) {
   if (result.data?.csrfToken) {
     csrfToken = result.data.csrfToken;
     sessionStorage.setItem('fanlong_csrf', csrfToken);
+  }
+  if (result.data?.sessionToken) {
+    sessionToken = result.data.sessionToken;
+    sessionStorage.setItem('fanlong_session_token', sessionToken);
   }
   return result.data;
 }

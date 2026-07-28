@@ -189,9 +189,29 @@ class AuthAndProfileTest(unittest.TestCase):
         )
         self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), "https://terminal.rpg0707.com")
         self.assertEqual(response.headers.get("Access-Control-Allow-Credentials"), "true")
+        self.assertIn("Authorization", response.headers.get("Access-Control-Allow-Headers", ""))
 
         blocked = self.client.get("/api/health", headers={"Origin": "https://example.com"})
         self.assertIsNone(blocked.headers.get("Access-Control-Allow-Origin"))
+
+    def test_bearer_session_survives_without_cross_site_cookies(self):
+        initialized = self.client.post(
+            "/api/auth/initialize",
+            json={"qq": "10001", "password": "strong-pass-1"},
+        )
+        session_token = initialized.json["data"]["sessionToken"]
+        csrf_token = initialized.json["data"]["csrfToken"]
+        self.client.delete_cookie("fanlong_session")
+        self.client.delete_cookie("fanlong_csrf")
+
+        headers = {"Authorization": f"Bearer {session_token}"}
+        self.assertTrue(self.client.get("/api/auth/status", headers=headers).json["data"]["authenticated"])
+        logout = self.client.post(
+            "/api/auth/logout",
+            headers={**headers, "X-CSRF-Token": csrf_token},
+        )
+        self.assertEqual(logout.status_code, 200)
+        self.assertFalse(self.client.get("/api/auth/status", headers=headers).json["data"]["authenticated"])
 
     def test_avatar_upload_is_reencoded_and_mapped(self):
         self.client.post("/api/auth/initialize", json={"qq": "10001", "password": "strong-pass-1"})
