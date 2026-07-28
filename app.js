@@ -81,7 +81,14 @@ async function apiRequest(path, options = {}) {
     if (csrf) headers.set('X-CSRF-Token', csrf);
   }
   const response = await fetch(path, { ...options, method, headers, credentials: 'same-origin', cache: 'no-store' });
-  const result = await response.json().catch(() => ({ ok: false, code: 'INVALID_RESPONSE', message: '服务器返回格式不正确' }));
+  const text = await response.text();
+  let result;
+  try {
+    result = JSON.parse(text);
+  } catch {
+    const preview = text.replace(/\s+/g, ' ').trim().slice(0, 80) || '空响应';
+    result = { ok: false, code: 'INVALID_RESPONSE', message: `服务器返回格式不正确（HTTP ${response.status}：${preview}）` };
+  }
   if (!response.ok || !result.ok) {
     const error = new Error(result.message || `请求失败（${response.status}）`);
     error.code = result.code;
