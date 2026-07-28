@@ -2,23 +2,26 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090806">
   <title>繁笼</title>
-  <link rel="stylesheet" href="styles.css?v=20260728-07">
+  <link rel="preconnect" href="https://terminal-api.rpg0707.com" crossorigin>
+  <link rel="preload" as="image" href="assets/ui/web/首页.webp" type="image/webp" fetchpriority="high">
+  <link rel="preload" as="font" href="assets/fonts/fanlong-ui.woff2" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=20260728-08">
 </head>
 <body>
   <main class="game-shell" aria-live="polite">
     <section class="screen opening is-active" id="opening" aria-label="繁笼首页">
       <div class="artboard opening-board">
-        <img src="assets/ui/首页.png" alt="繁笼">
+        <img src="assets/ui/web/首页.webp" width="1672" height="941" alt="繁笼" fetchpriority="high" decoding="async">
         <button class="hotspot start-hotspot" data-enter aria-label="开启繁笼"></button>
       </div>
     </section>
 
     <section class="screen login" id="login" aria-label="登录账户" aria-hidden="true">
       <div class="artboard login-board">
-        <img src="assets/ui/登陆.png" alt="繁笼登录账户">
+        <img data-src="assets/ui/web/登陆.webp" width="1672" height="941" alt="繁笼登录账户" decoding="async">
         <form class="login-form" id="loginForm" autocomplete="on">
           <label class="sr-only" for="account">账号</label>
           <input id="account" name="account" type="text" placeholder="请输入账号" autocomplete="username" required>
@@ -32,7 +35,7 @@
 
     <section class="screen loading" id="loading" aria-label="正在加载" aria-hidden="true">
       <div class="artboard loading-board">
-        <img src="assets/ui/加载页面.png" alt="繁笼加载页面">
+        <img data-src="assets/ui/web/加载页面.webp" width="1672" height="940" alt="繁笼加载页面" decoding="async">
         <div class="loading-progress" aria-hidden="true"><i id="loadingBar"></i></div>
         <p class="loading-note" id="loadingNote">正在整理档案与记忆，请稍候</p>
       </div>
@@ -40,7 +43,7 @@
 
     <section class="screen home" id="home" aria-label="繁笼主页" aria-hidden="true">
       <div class="artboard home-board">
-        <img src="assets/ui/主页图.png" alt="虞宫案台主页">
+        <img data-src="assets/ui/web/主页图.webp" width="1672" height="941" alt="虞宫案台主页" decoding="async">
 
         <button class="avatar-control" id="avatarControl" type="button" aria-label="更换玩家头像" title="点击更换头像">
           <img id="playerAvatar" alt="">
@@ -74,7 +77,7 @@
 
     <section class="screen daily-screen" id="dailyScreen" aria-label="日常" aria-hidden="true">
       <div class="artboard daily-board">
-        <img src="assets/ui/日常底图-v2.png" alt="繁笼日常页面">
+        <img data-src="assets/ui/web/日常底图-v2.webp" width="1672" height="941" alt="繁笼日常页面" decoding="async">
         <button class="daily-back" id="dailyBack" type="button" aria-label="返回主页"></button>
 
         <div class="daily-progress" aria-label="今日进度">
@@ -109,7 +112,7 @@
 
     <section class="screen social-screen" id="socialScreen" aria-label="社交" aria-hidden="true">
       <div class="artboard social-board">
-        <img src="assets/ui/社交图.png" alt="繁笼社交页面">
+        <img data-src="assets/ui/web/社交图.webp" width="1672" height="941" alt="繁笼社交页面" decoding="async">
         <button class="social-back" id="socialBack" type="button" aria-label="返回主页"></button>
 
         <form class="social-search" id="socialSearchForm" role="search">
@@ -134,7 +137,7 @@
 
     <section class="screen shop-screen" id="shopScreen" aria-label="虞宫商城" aria-hidden="true">
       <div class="artboard shop-board">
-        <img class="shop-scene" src="assets/ui/商城底图.png" alt="繁笼商城">
+        <img class="shop-scene" data-src="assets/ui/web/商城底图.webp" width="1672" height="941" alt="繁笼商城" decoding="async">
         <div class="shop-veil" aria-hidden="true"></div>
         <button class="shop-back" id="shopBack" type="button" aria-label="返回主页">‹ <span>返回</span></button>
         <header class="shop-heading sr-only"><h1>商城</h1></header>
@@ -155,7 +158,7 @@
 
     <section class="screen bag-screen" id="bagScreen" aria-label="背包" aria-hidden="true">
       <div class="artboard bag-board">
-        <img src="assets/ui/背包.png" alt="繁笼背包">
+        <img data-src="assets/ui/web/背包.webp" width="1672" height="941" alt="繁笼背包" decoding="async">
         <button class="bag-back" id="bagBack" aria-label="返回主页"></button>
 
         <div class="bag-resource bag-reputation"><span>名誉</span><strong id="bagReputation">1280</strong></div>
@@ -171,14 +174,14 @@
           <div class="bag-preview"><img id="bagPreviewImage" alt=""></div>
           <div class="bag-detail-heading"><h2 id="bagItemName">手写信件</h2><span>拥有：<b id="bagItemCount">3</b></span></div>
           <p id="bagItemDescription">一封字迹娟秀的信，信封上是熟悉的香气，似乎承载着未说出口的话语。</p>
-          <button class="bag-use-button" id="bagUseButton"><img src="assets/ui/使用按钮.png" alt=""><span>使用</span></button>
+          <button class="bag-use-button" id="bagUseButton"><img data-src="assets/ui/web/使用按钮.webp" alt=""><span>使用</span></button>
         </aside>
       </div>
     </section>
 
     <section class="screen gallery-screen" id="galleryScreen" aria-label="人物图鉴" aria-hidden="true">
       <div class="artboard gallery-board">
-        <img src="assets/ui/图鉴.png" alt="繁笼人物图鉴">
+        <img data-src="assets/ui/web/图鉴.webp" width="1672" height="941" alt="繁笼人物图鉴" decoding="async">
         <button class="gallery-back" id="galleryBack" aria-label="返回主页"></button>
         <div class="gallery-resource gallery-reputation"><span>名誉</span><strong>1280</strong></div>
         <div class="gallery-resource gallery-currency"><span>虞元</span><strong>5688</strong></div>
@@ -197,12 +200,12 @@
 
     <section class="screen summon-screen" id="summonScreen" aria-label="召集" aria-hidden="true">
       <div class="artboard summon-board">
-        <img src="assets/ui/召集底图.png" alt="召集页面">
+        <img data-src="assets/ui/web/召集底图.webp" width="1672" height="941" alt="召集页面" decoding="async">
         <button class="summon-back" id="summonBack" type="button" aria-label="返回主页"></button>
-        <div class="summon-balance"><img src="assets/ui/虞元icon.png" alt=""><span>当前虞元</span><strong id="summonBalance">0</strong></div>
+        <div class="summon-balance"><img data-src="assets/ui/虞元icon.png" alt=""><span>当前虞元</span><strong id="summonBalance">0</strong></div>
         <p class="summon-rate" id="summonRate">R 70% · SR 25% · SSR 5%　十连至少获得一张 SR 或 SSR</p>
-        <button class="summon-draw summon-draw-one" data-summon-count="1" type="button" aria-label="单抽"><span><img src="assets/ui/虞元icon.png" alt="">5</span></button>
-        <button class="summon-draw summon-draw-ten" data-summon-count="10" type="button" aria-label="十连抽"><span><img src="assets/ui/虞元icon.png" alt="">45</span></button>
+        <button class="summon-draw summon-draw-one" data-summon-count="1" type="button" aria-label="单抽"><span><img data-src="assets/ui/虞元icon.png" alt="">5</span></button>
+        <button class="summon-draw summon-draw-ten" data-summon-count="10" type="button" aria-label="十连抽"><span><img data-src="assets/ui/虞元icon.png" alt="">45</span></button>
         <button class="summon-details-link" id="summonDetailsLink" type="button" aria-label="查看召集详细说明">详细说明</button>
         <button class="summon-gallery-link" id="summonGalleryLink" type="button">查看已获角色</button>
       </div>
@@ -210,7 +213,7 @@
 
     <section class="screen summon-result-screen" id="summonResultScreen" aria-label="召集结果" aria-hidden="true">
       <div class="artboard summon-result-board">
-        <img src="assets/ui/召集结果底图.png" alt="召集结果">
+        <img data-src="assets/ui/web/召集结果底图.webp" width="1672" height="941" alt="召集结果" decoding="async">
         <button class="summon-result-back" id="summonResultBack" type="button" aria-label="返回召集"></button>
         <p class="summon-result-summary" id="summonResultSummary">召集结果</p>
         <div class="summon-result-grid" id="summonResultGrid"></div>
@@ -221,7 +224,7 @@
 
     <section class="screen memory-screen" id="memoryScreen" aria-label="剧情回忆" aria-hidden="true">
       <div class="artboard memory-board">
-        <img src="assets/ui/剧情底图-v2.png" alt="剧情回忆">
+        <img data-src="assets/ui/web/剧情底图-v2.webp" width="1672" height="941" alt="剧情回忆" decoding="async">
         <button class="memory-back" id="memoryBack" type="button" aria-label="返回主页"></button>
         <nav class="memory-filters" id="memoryFilters" aria-label="剧情筛选">
           <button class="is-active" data-memory-filter="all" type="button">全部</button>
@@ -235,7 +238,7 @@
 
     <section class="screen memory-detail-screen" id="memoryDetailScreen" aria-label="剧情详情" aria-hidden="true">
       <div class="artboard memory-detail-board">
-        <img src="assets/ui/剧情详情底图.png" alt="剧情详情">
+        <img data-src="assets/ui/web/剧情详情底图.webp" width="1672" height="941" alt="剧情详情" decoding="async">
         <button class="memory-detail-back" id="memoryDetailBack" type="button" aria-label="返回剧情列表"></button>
         <h2 id="memoryDetailTitle">剧情标题</h2>
         <div class="memory-detail-meta">
@@ -253,7 +256,7 @@
 
     <section class="screen archive-screen" id="archiveScreen" aria-label="角色档案" aria-hidden="true">
       <div class="artboard archive-board">
-        <img id="archiveBackground" src="assets/ui/档案-详情.png" alt="角色详情页面">
+        <img id="archiveBackground" data-src="assets/ui/web/档案-详情.webp" width="1672" height="940" alt="角色详情页面" decoding="async">
         <button class="wardrobe-back" id="wardrobeBack" aria-label="返回主页"></button>
         <button class="archive-tab archive-tab-detail" data-archive-tab="detail" aria-label="详情" aria-current="page"></button>
         <button class="archive-tab archive-tab-stats" data-archive-tab="stats" aria-label="属性"></button>
@@ -383,6 +386,6 @@
   </aside>
   <script src="database-snapshot.js?v=20260724-30"></script>
   <script src="wardrobe-data.js?v=20260724-30"></script>
-  <script src="app.js?v=20260728-07"></script>
+  <script src="app.js?v=20260728-08"></script>
 </body>
 </html>

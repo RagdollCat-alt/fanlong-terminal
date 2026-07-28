@@ -31,10 +31,50 @@ const terminalDialogTitle = document.querySelector('#terminalDialogTitle');
 const terminalDialogBody = document.querySelector('#terminalDialogBody');
 const terminalDialogConfirm = document.querySelector('#terminalDialogConfirm');
 const terminalDialogPanel = document.querySelector('.terminal-dialog-panel');
+const gameScreens = [opening, login, loading, home, dailyScreen, socialScreen, shopScreen, bagScreen, archiveScreen, galleryScreen, memoryScreen, memoryDetailScreen, summonScreen, summonResultScreen];
 let toastTimer;
 let loadingFrame;
 let apiUser = null;
 let dialogConfirmHandler = null;
+
+function updateGameLayout() {
+  const viewportWidth = window.visualViewport?.width || window.innerWidth;
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const portraitCanvas = viewportWidth < viewportHeight && Math.min(viewportWidth, viewportHeight) <= 900;
+  const scale = portraitCanvas
+    ? Math.min(viewportWidth / 941, viewportHeight / 1672)
+    : Math.min(viewportWidth / 1672, viewportHeight / 941);
+  document.body.style.setProperty('--game-scale', String(Math.max(scale, .01)));
+  document.body.classList.toggle('is-portrait-canvas', portraitCanvas);
+}
+
+function screenArtwork(screen) {
+  const image = screen?.querySelector('.artboard > img');
+  return image?.dataset.src || image?.getAttribute('src') || '';
+}
+
+function hydrateScreenAssets(screen) {
+  if (!screen) return;
+  const artwork = screenArtwork(screen);
+  if (artwork) screen.style.setProperty('--screen-art', `url("${encodeURI(artwork)}")`);
+  screen.querySelectorAll('img[data-src]').forEach((image) => {
+    const source = image.dataset.src;
+    const reveal = () => image.removeAttribute('data-src');
+    image.addEventListener('load', reveal, { once: true });
+    image.addEventListener('error', reveal, { once: true });
+    image.src = source;
+    if (image.complete) reveal();
+  });
+}
+
+updateGameLayout();
+window.addEventListener('resize', updateGameLayout, { passive: true });
+window.visualViewport?.addEventListener('resize', updateGameLayout, { passive: true });
+window.addEventListener('orientationchange', updateGameLayout, { passive: true });
+hydrateScreenAssets(opening);
+
+const scheduleAssetWarmup = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 500));
+window.addEventListener('load', () => scheduleAssetWarmup(() => hydrateScreenAssets(login)), { once: true });
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
@@ -123,8 +163,16 @@ function apiAssetUrl(path) {
   return path?.startsWith('/api/') ? `${API_ORIGIN}${path}` : path;
 }
 
+function optimizedCardImage(path) {
+  if (!path?.startsWith('assets/ui/summon-cards/')) return path;
+  return path
+    .replace('assets/ui/summon-cards/', 'assets/ui/summon-cards-web/')
+    .replace(/\.(png|jpe?g)$/i, '.webp');
+}
+
 function showScreen(nextScreen) {
-  [opening, login, loading, home, dailyScreen, socialScreen, shopScreen, bagScreen, archiveScreen, galleryScreen, memoryScreen, memoryDetailScreen, summonScreen, summonResultScreen].forEach((screen) => {
+  hydrateScreenAssets(nextScreen);
+  gameScreens.forEach((screen) => {
     const active = screen === nextScreen;
     screen.classList.toggle('is-active', active);
     screen.setAttribute('aria-hidden', String(!active));
@@ -133,6 +181,10 @@ function showScreen(nextScreen) {
 
 function enterLogin() {
   showScreen(login);
+  scheduleAssetWarmup(() => {
+    hydrateScreenAssets(loading);
+    hydrateScreenAssets(home);
+  });
   window.setTimeout(() => document.querySelector('#account').focus(), 500);
 }
 
@@ -246,6 +298,7 @@ document.querySelectorAll('[data-feature]').forEach((button) => {
       else showToast('商城需要登录后使用');
     }
     else if (button.dataset.feature === '角色') {
+      ensureArchiveUi();
       setArchivePage('detail');
       showScreen(archiveScreen);
     }
@@ -825,7 +878,7 @@ function renderShop() {
     const soldOut = item.stock === 0;
     const price = item.channel === 'compound' ? '查看配方' : `${item.price} ${item.currency === 'reputation' ? '名誉' : '虞元'}`;
     return `<button class="shop-card ${soldOut ? 'is-sold-out' : ''}" data-shop-item="${escapeHtml(item.name)}" type="button" style="--delay:${index * 35}ms">
-      <img src="${encodeURI(itemAssetPath(item))}" alt="" onerror="this.onerror=null;this.src='assets/ui/通用占位图.png'">
+      <img src="${encodeURI(itemAssetPath(item))}" alt="" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
       <h2>${escapeHtml(item.name)}</h2>
       <footer><span>${price}</span><small>${soldOut ? '已售罄' : item.stock < 0 ? `持有 ${item.owned}` : `库存 ${item.stock}`}</small></footer>
     </button>`;
@@ -1058,7 +1111,7 @@ function renderBag() {
 
   document.querySelector('#bagGrid').innerHTML = visibleItems.map((item) => `
     <button class="bag-item ${item.id === selectedBagItemId ? 'is-selected' : ''}" data-bag-item="${item.id}" aria-label="${item.name}，数量${item.count}">
-      <img src="${encodeURI(item.image)}" alt="" onerror="this.onerror=null;this.src='assets/ui/通用占位图.png'">
+      <img src="${encodeURI(item.image)}" alt="" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
       <span>${item.count}</span>
     </button>`).join('');
 
@@ -1070,9 +1123,9 @@ function renderBag() {
   const item = bagItems.find((entry) => entry.id === selectedBagItemId);
   if (!item) return;
   const preview = document.querySelector('#bagPreviewImage');
-  preview.classList.toggle('is-placeholder', item.image === 'assets/ui/通用占位图.png');
+  preview.classList.toggle('is-placeholder', item.image === 'assets/ui/web/通用占位图.webp');
   preview.src = item.image;
-  preview.onerror = () => { preview.onerror = null; preview.src = 'assets/ui/通用占位图.png'; };
+  preview.onerror = () => { preview.onerror = null; preview.src = 'assets/ui/web/通用占位图.webp'; };
   preview.alt = item.name;
   document.querySelector('#bagItemName').textContent = item.name;
   document.querySelector('#bagItemCount').textContent = item.count;
@@ -1143,7 +1196,7 @@ function renderGallery() {
   }
   document.querySelector('#galleryGrid').innerHTML = visible.map((card) => `
     <button class="gallery-card rarity-${card.rarity.toLowerCase()} ${card.unlocked ? '' : 'is-locked'}" data-gallery-card="${card.id}" aria-label="${card.name}，${card.rarity}${card.unlocked ? '，已解锁' : '，未解锁'}">
-      <img src="${encodeURI(card.image)}" alt="${escapeHtml(card.name)}" onerror="this.onerror=null;this.src='assets/ui/通用占位图.png'">
+      <img src="${encodeURI(optimizedCardImage(card.image))}" alt="${escapeHtml(card.name)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
       <span class="gallery-rarity">${card.rarity}</span>
       <span class="gallery-card-name">${card.name}</span>
       <span class="gallery-stars">${card.rarity === 'SSR' ? '★★★★★' : card.rarity === 'SR' ? '★★★★☆' : '★★★☆☆'}</span>
@@ -1161,7 +1214,7 @@ function renderGallery() {
       title: `${card.name} · ${card.rarity}`,
       hideConfirm: true,
       cancelLabel: '关闭大图',
-      html: `<figure class="dialog-gallery-preview"><img src="${encodeURI(card.image)}" alt="${escapeHtml(card.name)}" onerror="this.onerror=null;this.src='assets/ui/通用占位图.png'"><figcaption>${escapeHtml(card.name)} · ${card.rarity} · 已获得 ${card.copies || 1} 张</figcaption></figure>`
+      html: `<figure class="dialog-gallery-preview"><img src="${encodeURI(optimizedCardImage(card.image))}" alt="${escapeHtml(card.name)}" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'"><figcaption>${escapeHtml(card.name)} · ${card.rarity} · 已获得 ${card.copies || 1} 张</figcaption></figure>`
     });
   }));
 }
@@ -1177,7 +1230,7 @@ document.querySelectorAll('[data-gallery-add]').forEach((button) => button.addEv
 let summonData = { balance: 0, prices: { single: 5, ten: 45 }, cards: [] };
 function applySummonState(data) {
   summonData = { ...summonData, ...data };
-  galleryCards = (data.cards || []).map((card) => ({ ...card, unlocked: true }));
+  galleryCards = (data.cards || []).map((card) => ({ ...card, image: optimizedCardImage(card.image), unlocked: true }));
   document.querySelector('#summonBalance').textContent = summonData.balance;
   if (apiUser) {
     apiUser.currency.yuCoin = summonData.balance;
@@ -1205,7 +1258,7 @@ function renderSummonResults(result) {
   grid.innerHTML = result.results.map((card, index) => `
     <article class="summon-result-card rarity-${card.rarity.toLowerCase()}" style="--result-delay:${index * 90}ms">
       <div class="summon-card-light" aria-hidden="true"></div>
-      <img src="${encodeURI(card.image)}" alt="${escapeHtml(card.name)}" onerror="this.onerror=null;this.src='assets/ui/通用占位图.png'">
+      <img src="${encodeURI(optimizedCardImage(card.image))}" alt="${escapeHtml(card.name)}" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
       <span class="summon-card-rarity">${card.rarity}</span>
       ${card.isNew ? '<i>NEW</i>' : ''}
       <strong>${escapeHtml(card.name)}</strong>
@@ -1251,7 +1304,7 @@ function openActivityDialog() {
     title: '太一问道实录',
     hideConfirm: true,
     cancelLabel: '关闭',
-    html: '<button class="activity-poster" id="activityPoster" type="button"><img src="assets/ui/太一问道实录.png" alt="太一问道实录活动海报"><span>点击海报参与活动</span></button>'
+    html: '<button class="activity-poster" id="activityPoster" type="button"><img src="assets/ui/web/太一问道实录.webp" alt="太一问道实录活动海报"><span>点击海报参与活动</span></button>'
   });
   document.querySelector('#activityPoster').addEventListener('click', () => showToast('活动进行中，请于群内参与。'));
 }
@@ -1598,9 +1651,9 @@ function itemAssetPath(item) {
   const wardrobeItem = wardrobeDatabase.items.find((entry) => entry.name === item.name);
   const slot = item.slot || wardrobeItem?.slot;
   const categories = { top: '上衣', bottom: '下装', head: '头饰', neck: '颈饰', interior: '内饰', accessory: '配饰' };
-  if (categories[slot]) return `assets/ui/products/${categories[slot]}/${item.name}.png`;
-  if (item.type === 'consumable') return `assets/ui/products/消耗类/${item.name}.png`;
-  return 'assets/ui/通用占位图.png';
+  if (categories[slot]) return `assets/ui/products-web/${categories[slot]}/${item.name}.webp`;
+  if (item.type === 'consumable') return `assets/ui/products-web/消耗类/${item.name}.webp`;
+  return 'assets/ui/web/通用占位图.webp';
 }
 
 function applyApiStats(data) {
@@ -1676,9 +1729,9 @@ async function refreshLiveDatabaseUser() {
 }
 
 const archiveBackgrounds = {
-  detail: 'assets/ui/档案-详情.png',
-  stats: 'assets/ui/档案-属性.png',
-  outfit: 'assets/ui/档案-服饰-v2.jpg'
+  detail: 'assets/ui/web/档案-详情.webp',
+  stats: 'assets/ui/web/档案-属性.webp',
+  outfit: 'assets/ui/web/档案-服饰-v2.webp'
 };
 
 function renderArchiveData() {
@@ -1710,6 +1763,8 @@ function renderArchiveData() {
 function setArchivePage(page) {
   const background = document.querySelector('#archiveBackground');
   background.src = archiveBackgrounds[page];
+  background.removeAttribute('data-src');
+  archiveScreen.style.setProperty('--screen-art', `url("${encodeURI(archiveBackgrounds[page])}")`);
   background.alt = `角色${page === 'detail' ? '详情' : page === 'stats' ? '属性' : '服饰'}页面`;
   document.querySelectorAll('[data-archive-page]').forEach((panel) => panel.classList.toggle('is-active', panel.dataset.archivePage === page));
   document.querySelectorAll('[data-archive-tab]').forEach((tab) => {
@@ -1738,9 +1793,9 @@ function renderOutfitIcon(outfit) {
   const symbols = { hair: '♒', top: '♜', bottom: '♟', head: '♕', neck: '♢', interior: '✣', accessory: '✦' };
   const fallback = `<span class="slot-glyph slot-${outfit.slot}" aria-hidden="true"><b>${symbols[outfit.slot] || '✦'}</b></span>`;
   const category = productCategoryBySlot[outfit.slot];
-  if (!category) return `<img class="product-art" src="assets/ui/通用占位图.png" alt="">${fallback}`;
-  const imagePath = `assets/ui/products/${category}/${outfit.name}.png`;
-  return `<img class="product-art" src="${encodeURI(imagePath)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='assets/ui/通用占位图.png'">${fallback}`;
+  if (!category) return `<img class="product-art" src="assets/ui/web/通用占位图.webp" alt="">${fallback}`;
+  const imagePath = `assets/ui/products-web/${category}/${outfit.name}.webp`;
+  return `<img class="product-art" src="${encodeURI(imagePath)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">${fallback}`;
 }
 
 function renderEquippedOutfit() {
@@ -1915,16 +1970,23 @@ document.querySelector('#outfitNext').addEventListener('click', () => { outfitPa
 
 document.querySelector('#wardrobeBack').addEventListener('click', () => showScreen(home));
 document.querySelectorAll('[data-archive-tab]').forEach((button) => button.addEventListener('click', () => setArchivePage(button.dataset.archiveTab)));
-applyDatabaseTestUser();
-renderArchiveData();
-refreshLiveDatabaseUser();
-renderOutfitFilters();
-renderOutfits();
-renderOutfitDetails();
-renderEquippedOutfit();
+
+let archiveUiInitialized = false;
+function ensureArchiveUi() {
+  if (archiveUiInitialized) return;
+  archiveUiInitialized = true;
+  applyDatabaseTestUser();
+  renderArchiveData();
+  refreshLiveDatabaseUser();
+  renderOutfitFilters();
+  renderOutfits();
+  renderOutfitDetails();
+  renderEquippedOutfit();
+}
 
 const previewTab = searchParams.get('archive');
 if (archiveBackgrounds[previewTab]) {
+  ensureArchiveUi();
   setArchivePage(previewTab);
   showScreen(archiveScreen);
 }
