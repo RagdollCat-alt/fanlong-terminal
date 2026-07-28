@@ -1,6 +1,6 @@
 const opening = document.querySelector('#opening');
 const searchParams = new URLSearchParams(window.location.search);
-const API_ORIGIN = 'https://terminal-api.rpg0707.com';
+const API_ORIGIN = '';
 let csrfToken = sessionStorage.getItem('fanlong_csrf') || '';
 if (searchParams.has('memories') || searchParams.has('memory') || searchParams.has('gallery') || searchParams.has('archive') || searchParams.has('daily') || searchParams.has('social') || searchParams.has('summon') || searchParams.has('summonResult') || searchParams.has('shop') || searchParams.has('bag') || searchParams.has('activity')) {
   document.body.classList.add('is-previewing');
