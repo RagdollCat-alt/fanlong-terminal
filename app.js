@@ -3,6 +3,9 @@ const searchParams = new URLSearchParams(window.location.search);
 if (searchParams.has('memories') || searchParams.has('memory') || searchParams.has('gallery') || searchParams.has('archive') || searchParams.has('daily') || searchParams.has('social') || searchParams.has('summon') || searchParams.has('summonResult') || searchParams.has('shop') || searchParams.has('bag') || searchParams.has('activity')) {
   document.body.classList.add('is-previewing');
 }
+if (searchParams.has('debug')) {
+  document.body.classList.add('debug-enabled');
+}
 const login = document.querySelector('#login');
 const loading = document.querySelector('#loading');
 const home = document.querySelector('#home');
@@ -95,12 +98,25 @@ function showScreen(nextScreen) {
     screen.classList.toggle('is-active', active);
     screen.setAttribute('aria-hidden', String(!active));
   });
+  centerActiveScreen(nextScreen);
 }
 
 function enterLogin() {
   showScreen(login);
   window.setTimeout(() => document.querySelector('#account').focus(), 500);
 }
+
+function centerActiveScreen(screen) {
+  if (!screen) return;
+  requestAnimationFrame(() => {
+    const overflow = screen.scrollWidth - screen.clientWidth;
+    if (overflow > 0) screen.scrollLeft = overflow / 2;
+  });
+}
+
+window.addEventListener('resize', () => {
+  centerActiveScreen(document.querySelector('.screen.is-active'));
+});
 
 function enterLoading() {
   showScreen(loading);
@@ -184,7 +200,8 @@ loginForm.addEventListener('submit', async (event) => {
     loginError.textContent = '';
     enterLoading();
   } catch (error) {
-    loginError.textContent = error.message || '登录失败，请稍后重试';
+    if (error.code === 'AUTH_REQUIRED') loginError.textContent = '登录凭证未生效，请刷新页面后重试';
+    else loginError.textContent = error.message || '登录失败，请稍后重试';
   } finally {
     submit.disabled = false;
   }

@@ -41,6 +41,15 @@ html, body {
   font-family: var(--fanlong-font);
 }
 
+@supports (height: 100dvh) {
+  html,
+  body,
+  .game-shell,
+  .screen {
+    height: 100dvh;
+  }
+}
+
 button { font: inherit; }
 
 .sr-only {
@@ -2194,11 +2203,38 @@ body.debug-mode .screen.is-active [data-debug-target] { pointer-events: auto !im
 @keyframes gallery-card-in { from { opacity: 0; transform: translateY(12px); filter: brightness(.55); } to { opacity: 1; transform: none; filter: brightness(1); } }
 @keyframes memory-card-in { from { opacity: 0; transform: translateY(10px); filter: brightness(.6); } to { opacity: 1; transform: none; filter: brightness(1); } }
 
-@media (max-aspect-ratio: 9/12) {
+body:not(.debug-enabled) .debug-toggle,
+body:not(.debug-enabled) .debug-panel {
+  display: none !important;
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .screen {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .screen::-webkit-scrollbar {
+    display: none;
+  }
+
   .artboard {
-    width: 100vw;
+    flex: 0 0 auto;
+    width: calc(100dvh * 1672 / 941);
+    min-width: calc(100dvh * 1672 / 941);
+    height: 100dvh;
     max-width: none;
-    transform: rotate(90deg);
+    box-shadow: none;
+  }
+
+  .artboard > img {
+    object-fit: cover;
   }
 }
 
