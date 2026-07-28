@@ -161,6 +161,22 @@ class AuthAndProfileTest(unittest.TestCase):
         self.assertEqual(profile.status_code, 200)
         self.assertEqual(profile.json["data"]["profile"][-1]["value"], "测试备注")
 
+    def test_auth_accepts_name_or_uid_and_resolves_real_player(self):
+        initialized = self.client.post("/api/auth/initialize", json={"qq": "奚行简", "password": "strong-pass-1"})
+        self.assertEqual(initialized.status_code, 200)
+
+        me = self.client.get("/api/me")
+        self.assertEqual(me.status_code, 200)
+        self.assertEqual(me.json["data"]["qq"], "10001")
+        self.assertEqual(me.json["data"]["name"], "奚行简")
+
+        logout = self.client.post("/api/auth/logout", headers={"X-CSRF-Token": self.csrf()})
+        self.assertEqual(logout.status_code, 200)
+
+        login = self.client.post("/api/auth/login", json={"qq": "20001", "password": "strong-pass-1"})
+        self.assertEqual(login.status_code, 200)
+        self.assertEqual(self.client.get("/api/me").json["data"]["name"], "奚行简")
+
     def test_write_route_requires_csrf_and_login_survives_logout(self):
         self.client.post("/api/auth/initialize", json={"qq": "10001", "password": "strong-pass-1"})
         denied = self.client.post("/api/auth/logout")

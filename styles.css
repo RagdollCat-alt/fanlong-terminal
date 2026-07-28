@@ -601,6 +601,10 @@ body.is-text-editing .artboard {
 .shop-card footer small { color: rgba(203, 185, 155, .58); }
 .shop-empty { display: none; place-items: center; height: 100%; color: rgba(220, 201, 169, .55); letter-spacing: .15em; }
 .shop-empty.is-visible { display: grid; }
+.bag-empty { grid-column: 1 / -1; grid-row: 1 / -1; display: grid; place-content: center; justify-items: center; gap: .65em; border: 1px dashed rgba(183, 148, 90, .24); color: #93846d; text-align: center; }
+.bag-empty i { color: #d4ad6a; font: normal clamp(18px, 2cqw, 34px) Georgia, serif; }
+.bag-empty strong { color: #cdb58e; font-size: clamp(10px, .9cqw, 15px); font-weight: 400; letter-spacing: .16em; }
+.bag-empty span { max-width: 76%; font-size: clamp(7px, .58cqw, 10px); line-height: 1.6; letter-spacing: .08em; }
 .shop-pagination { position: absolute; z-index: 3; left: 43%; bottom: 9.2%; width: 14%; display: flex; align-items: center; justify-content: space-between; }
 .shop-pagination button { width: 28px; height: 28px; color: #e5c88f; border: 1px solid rgba(217, 181, 115, .42); background: rgba(8, 16, 31, .72); }
 .shop-pagination span { color: rgba(220, 197, 158, .68); font: clamp(8px, .72cqw, 12px) Georgia, serif; letter-spacing: .12em; }
@@ -2947,12 +2951,12 @@ body:not(.debug-enabled) .debug-panel {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     background-size: 100% 100%;
-    transform: translate(-50%, -50%) rotate(-90deg) scale(.985);
+    transform: translate(-50%, -50%) rotate(90deg) scale(.985);
     transform-origin: center;
   }
 
   body.is-portrait-canvas .terminal-dialog.is-open .terminal-dialog-panel {
-    transform: translate(-50%, -50%) rotate(-90deg) scale(1);
+    transform: translate(-50%, -50%) rotate(90deg) scale(1);
   }
 
   body.is-portrait-canvas .terminal-dialog-panel header {

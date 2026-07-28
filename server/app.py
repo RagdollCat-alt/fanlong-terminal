@@ -219,10 +219,21 @@ def create_app(settings: Settings | None = None) -> Flask:
         value = request.get_json(silent=True)
         return value if isinstance(value, dict) else {}
 
+    def resolve_player_id(identifier: str) -> str | None:
+        if not identifier or len(identifier) > 40:
+            return None
+        with connect(active.fanlong_db_path) as db:
+            row = db.execute(
+                "SELECT id FROM users WHERE id=? OR name=? OR CAST(uid AS TEXT)=? LIMIT 1",
+                (identifier, identifier, identifier),
+            ).fetchone()
+        return str(row["id"]) if row else None
+
     def validate_credentials(body: dict) -> tuple[str, str, tuple | None]:
-        qq_id = str(body.get("qq", "")).strip()
+        identifier = str(body.get("qq", "")).strip()
         password = str(body.get("password", ""))
-        if not qq_id.isdigit() or len(qq_id) > 20:
+        qq_id = resolve_player_id(identifier)
+        if not qq_id:
             return "", "", payload(False, "INVALID_INPUT", "账号或密码格式不正确", status=400)
         if len(password) < 8 or len(password) > 128:
             return "", "", payload(False, "INVALID_INPUT", "密码需为8至128位", status=400)

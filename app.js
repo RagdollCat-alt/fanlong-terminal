@@ -1140,6 +1140,21 @@ function renderBag() {
   const selectedVisible = visibleItems.some((item) => item.id === selectedBagItemId);
   if (!selectedVisible && visibleItems[0]) selectedBagItemId = visibleItems[0].id;
 
+  const preview = document.querySelector('#bagPreviewImage');
+  const useButton = document.querySelector('#bagUseButton');
+  if (!visibleItems.length) {
+    document.querySelector('#bagGrid').innerHTML = '<div class="bag-empty"><i>◇</i><strong>暂无物品</strong><span>当前分类没有可展示的背包物品</span></div>';
+    preview.classList.add('is-placeholder');
+    preview.src = 'assets/ui/web/通用占位图.webp';
+    preview.alt = '暂无物品';
+    document.querySelector('#bagItemName').textContent = '暂无物品';
+    document.querySelector('#bagItemCount').textContent = '0';
+    document.querySelector('#bagItemDescription').textContent = '当前背包为空。';
+    useButton.disabled = true;
+    useButton.querySelector('span').textContent = '不可使用';
+    return;
+  }
+
   document.querySelector('#bagGrid').innerHTML = visibleItems.map((item) => `
     <button class="bag-item ${item.id === selectedBagItemId ? 'is-selected' : ''}" data-bag-item="${item.id}" aria-label="${item.name}，数量${item.count}">
       <img src="${encodeURI(item.image)}" alt="" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
@@ -1153,7 +1168,6 @@ function renderBag() {
 
   const item = bagItems.find((entry) => entry.id === selectedBagItemId);
   if (!item) return;
-  const preview = document.querySelector('#bagPreviewImage');
   preview.classList.toggle('is-placeholder', item.image === 'assets/ui/web/通用占位图.webp');
   preview.src = item.image;
   preview.onerror = () => { preview.onerror = null; preview.src = 'assets/ui/web/通用占位图.webp'; };
@@ -1161,7 +1175,6 @@ function renderBag() {
   document.querySelector('#bagItemName').textContent = item.name;
   document.querySelector('#bagItemCount').textContent = item.count;
   document.querySelector('#bagItemDescription').textContent = item.description;
-  const useButton = document.querySelector('#bagUseButton');
   useButton.disabled = !item.usable || item.count < 1;
   useButton.querySelector('span').textContent = item.count < 1 ? '已用完' : item.usable ? '使用' : '不可使用';
 }
@@ -2007,9 +2020,11 @@ let archiveUiInitialized = false;
 function ensureArchiveUi() {
   if (archiveUiInitialized) return;
   archiveUiInitialized = true;
-  applyDatabaseTestUser();
+  if (!apiUser) {
+    applyDatabaseTestUser();
+    refreshLiveDatabaseUser();
+  }
   renderArchiveData();
-  refreshLiveDatabaseUser();
   renderOutfitFilters();
   renderOutfits();
   renderOutfitDetails();
