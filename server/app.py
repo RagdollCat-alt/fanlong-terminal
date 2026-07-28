@@ -123,6 +123,7 @@ def create_app(settings: Settings | None = None) -> Flask:
 
     def set_auth_cookies(response: Response, session_token: str, csrf_token: str) -> None:
         lifetime = active.session_days * 86400
+        cookie_domain = active.cookie_domain or None
         response.set_cookie(
             SESSION_COOKIE,
             session_token,
@@ -131,6 +132,7 @@ def create_app(settings: Settings | None = None) -> Flask:
             secure=active.cookie_secure,
             samesite="Lax",
             path="/",
+            domain=cookie_domain,
         )
         response.set_cookie(
             CSRF_COOKIE,
@@ -140,11 +142,13 @@ def create_app(settings: Settings | None = None) -> Flask:
             secure=active.cookie_secure,
             samesite="Lax",
             path="/",
+            domain=cookie_domain,
         )
 
     def clear_auth_cookies(response: Response) -> None:
-        response.delete_cookie(SESSION_COOKIE, path="/", secure=active.cookie_secure, samesite="Lax")
-        response.delete_cookie(CSRF_COOKIE, path="/", secure=active.cookie_secure, samesite="Lax")
+        cookie_domain = active.cookie_domain or None
+        response.delete_cookie(SESSION_COOKIE, path="/", secure=active.cookie_secure, samesite="Lax", domain=cookie_domain)
+        response.delete_cookie(CSRF_COOKIE, path="/", secure=active.cookie_secure, samesite="Lax", domain=cookie_domain)
 
     def create_session(db: sqlite3.Connection, qq_id: str) -> tuple[str, str]:
         session_token = random_token()
@@ -242,6 +246,13 @@ def create_app(settings: Settings | None = None) -> Flask:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Cache-Control"] = "no-store" if request.path.startswith("/api/") else response.headers.get("Cache-Control", "")
+        origin = request.headers.get("Origin", "").rstrip("/")
+        if origin and origin in active.allowed_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRF-Token, Idempotency-Key"
+            response.headers.add("Vary", "Origin")
         return response
 
     @app.get("/api/health")
@@ -292,7 +303,7 @@ def create_app(settings: Settings | None = None) -> Flask:
         except sqlite3.IntegrityError:
             audit(qq_id, "auth.initialize", qq_id, "race_lost")
             return payload(False, "ACCOUNT_EXISTS", "该账号已完成首次设密，请直接登录", status=409)
-        response, status = payload(True, "ACCOUNT_CREATED", "首次设密成功", {"mustChangePassword": False})
+        response, status = payload(True, "ACCOUNT_CREATED", "首次设密成功", {"mustChangePassword": False, "csrfToken": csrf_token})
         set_auth_cookies(response, session_token, csrf_token)
         return response, status
 
@@ -318,7 +329,7 @@ def create_app(settings: Settings | None = None) -> Flask:
             True,
             "OK",
             "登录成功",
-            {"mustChangePassword": bool(account["must_change_password"])},
+            {"mustChangePassword": bool(account["must_change_password"]), "csrfToken": csrf_token},
         )
         set_auth_cookies(response, session_token, csrf_token)
         return response, status

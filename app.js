@@ -1,5 +1,7 @@
 const opening = document.querySelector('#opening');
 const searchParams = new URLSearchParams(window.location.search);
+const API_ORIGIN = 'https://terminal-api.rpg0707.com';
+let csrfToken = sessionStorage.getItem('fanlong_csrf') || '';
 if (searchParams.has('memories') || searchParams.has('memory') || searchParams.has('gallery') || searchParams.has('archive') || searchParams.has('daily') || searchParams.has('social') || searchParams.has('summon') || searchParams.has('summonResult') || searchParams.has('shop') || searchParams.has('bag') || searchParams.has('activity')) {
   document.body.classList.add('is-previewing');
 }
@@ -74,13 +76,27 @@ function readCookie(name) {
 
 async function apiRequest(path, options = {}) {
   const method = String(options.method || 'GET').toUpperCase();
+  const timeoutMs = Number(options.timeoutMs || 15000);
   const headers = new Headers(options.headers || {});
   if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-    const csrf = decodeURIComponent(readCookie('fanlong_csrf'));
+    const csrf = csrfToken || decodeURIComponent(readCookie('fanlong_csrf'));
     if (csrf) headers.set('X-CSRF-Token', csrf);
   }
-  const response = await fetch(path, { ...options, method, headers, credentials: 'same-origin', cache: 'no-store' });
+  const url = path.startsWith('/api/') ? `${API_ORIGIN}${path}` : path;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(url, { ...options, method, headers, credentials: 'include', cache: 'no-store', signal: controller.signal });
+  } catch (error) {
+    const message = error.name === 'AbortError' ? '服务器响应超时，请稍后重试' : '无法连接服务器，请检查网络后重试';
+    const networkError = new Error(message);
+    networkError.code = error.name === 'AbortError' ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR';
+    throw networkError;
+  } finally {
+    window.clearTimeout(timeout);
+  }
   const text = await response.text();
   let result;
   try {
@@ -96,7 +112,15 @@ async function apiRequest(path, options = {}) {
     error.data = result.data;
     throw error;
   }
+  if (result.data?.csrfToken) {
+    csrfToken = result.data.csrfToken;
+    sessionStorage.setItem('fanlong_csrf', csrfToken);
+  }
   return result.data;
+}
+
+function apiAssetUrl(path) {
+  return path?.startsWith('/api/') ? `${API_ORIGIN}${path}` : path;
 }
 
 function showScreen(nextScreen) {
@@ -148,10 +172,10 @@ function showToast(label) {
 }
 
 document.querySelector('[data-enter]').addEventListener('click', async () => {
+  enterLogin();
   try {
-    const status = await apiRequest('/api/auth/status');
+    const status = await apiRequest('/api/auth/status', { timeoutMs: 4000 });
     if (!status.authenticated) {
-      enterLogin();
       return;
     }
     if (status.mustChangePassword) {
@@ -162,8 +186,7 @@ document.querySelector('[data-enter]').addEventListener('click', async () => {
     await loadCurrentUser();
     enterLoading();
   } catch {
-    enterLogin();
-    loginError.textContent = '暂时无法连接服务，请稍后重试';
+    loginError.textContent = '';
   }
 });
 
@@ -667,7 +690,7 @@ function renderSocialSelection() {
   panel.querySelector('span').textContent = selectedSocialPlayer ? '当前已选择' : '当前未选择玩家';
   name.textContent = selectedSocialPlayer?.name || '请先搜索';
   avatar.hidden = !selectedSocialPlayer?.avatarUrl;
-  if (selectedSocialPlayer?.avatarUrl) avatar.src = selectedSocialPlayer.avatarUrl;
+  if (selectedSocialPlayer?.avatarUrl) avatar.src = apiAssetUrl(selectedSocialPlayer.avatarUrl);
 }
 
 socialSearchForm.addEventListener('submit', async (event) => {
@@ -706,7 +729,7 @@ document.querySelectorAll('[data-social-action]').forEach((button) => {
         openTerminalDialog({
           title: `${profile.name}的档案`, hideConfirm: true, cancelLabel: '关闭',
           dialogClass: 'dialog-social-profile',
-          html: `${profile.avatarUrl ? `<img class="dialog-avatar" src="${escapeHtml(profile.avatarUrl)}" alt="">` : ''}<dl>${profile.profile.map((field) => `<dt>${escapeHtml(field.label)}</dt><dd>${escapeHtml(field.value || '暂无记录')}</dd>`).join('')}</dl>`
+          html: `${profile.avatarUrl ? `<img class="dialog-avatar" src="${escapeHtml(apiAssetUrl(profile.avatarUrl))}" alt="">` : ''}<dl>${profile.profile.map((field) => `<dt>${escapeHtml(field.label)}</dt><dd>${escapeHtml(field.value || '暂无记录')}</dd>`).join('')}</dl>`
         });
       }).catch((error) => showToast(error.message));
     } else if (button.dataset.socialAction === 'yuyuan') {
@@ -983,7 +1006,7 @@ document.querySelector('#avatarCropSave').addEventListener('click', async () => 
       const form = new FormData();
       form.append('avatar', blob, 'avatar.jpg');
       const result = await apiRequest('/api/me/avatar', { method: 'POST', body: form });
-      setPlayerAvatar(`${result.avatarUrl}?v=${Date.now()}`);
+      setPlayerAvatar(`${apiAssetUrl(result.avatarUrl)}?v=${Date.now()}`);
       apiUser.avatarUrl = result.avatarUrl;
     } else {
       const avatarData = avatarCropCanvas.toDataURL('image/jpeg', .88);
@@ -1567,7 +1590,7 @@ function applyApiUser(user) {
   document.querySelectorAll('.gallery-currency strong').forEach((element) => { element.textContent = user.currency.yuCoin; });
   document.querySelector('#shopReputation').textContent = user.currency.reputation;
   document.querySelector('#shopCurrency').textContent = user.currency.yuCoin;
-  setPlayerAvatar(user.avatarUrl || '');
+  setPlayerAvatar(apiAssetUrl(user.avatarUrl) || '');
   renderArchiveData();
 }
 

@@ -20,6 +20,8 @@ class Settings:
     cookie_secure: bool = True
     session_days: int = 7
     trusted_proxy_key: str = ""
+    cookie_domain: str = ""
+    allowed_origins: tuple[str, ...] = ()
     testing: bool = False
 
     @classmethod
@@ -45,5 +47,10 @@ class Settings:
             cookie_secure=_env_bool("TERMINAL_COOKIE_SECURE", True),
             session_days=max(1, int(os.getenv("TERMINAL_SESSION_DAYS", "7"))),
             trusted_proxy_key=os.getenv("TERMINAL_TRUSTED_PROXY_KEY", ""),
+            cookie_domain=os.getenv("TERMINAL_COOKIE_DOMAIN", "").strip(),
+            allowed_origins=tuple(
+                origin.strip().rstrip("/")
+                for origin in os.getenv("TERMINAL_ALLOWED_ORIGINS", "").split(",")
+                if origin.strip()
+            ),
         )
-

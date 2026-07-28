@@ -4,8 +4,8 @@
 
 ```text
 terminal.rpg0707.com
-  -> Vercel 静态页面与 /api 同源转发
-  -> https://fanlong-api.huaian.cloud
+  -> Vercel 静态页面
+  -> 浏览器直连 https://terminal-api.rpg0707.com
   -> Windows 宝塔 Nginx
   -> 127.0.0.1:5002
   -> Waitress + Flask
@@ -41,6 +41,8 @@ TERMINAL_DB_PATH=E:\fanlong_terminal_data\terminal.db
 TERMINAL_UPLOAD_DIR=E:\fanlong_terminal_data\uploads\avatars
 TERMINAL_COOKIE_SECURE=1
 TERMINAL_SESSION_DAYS=7
+TERMINAL_COOKIE_DOMAIN=.rpg0707.com
+TERMINAL_ALLOWED_ORIGINS=https://terminal.rpg0707.com
 ```
 
 ## 上线前必须完成
@@ -48,8 +50,8 @@ TERMINAL_SESSION_DAYS=7
 1. 先停止 OlivOS 对 `fanlong.db` 的写入，并保留完整备份。
 2. 配置上述环境变量后运行 `python run_game_migrations.py`，人工输入 `MIGRATE`。
 3. 确认输出 `integrity_check=ok` 后再恢复机器人，并安装/启动 NSSM 服务。
-4. 宝塔新建 `fanlong-api.huaian.cloud`，申请 HTTPS，把 `nginx-fanlong-api.conf` 的 `location` 配置放入 HTTPS server 块。
-5. `terminal.rpg0707.com` 的 Vercel 项目 Root Directory 指向 `代码`，仓库中的 `vercel.json` 会把 `/api/*` 同源转发到 API 域名。
-6. 验证 `https://terminal.rpg0707.com/api/health` 返回 `ok: true`，再测试首次设密、退出重登、背包、服饰、日常、商城、剧情和社交。
+4. 将 `terminal-api.rpg0707.com` 解析到服务器，为该域名申请 HTTPS，并反向代理到 `127.0.0.1:5002`。
+5. `terminal.rpg0707.com` 的 Vercel 项目 Root Directory 指向 `代码`；前端会直连 `terminal-api.rpg0707.com`，不再经过 Vercel 外部转发。
+6. 验证 `https://terminal-api.rpg0707.com/api/health` 返回 `ok: true`，再测试首次设密、退出重登、背包、服饰、日常、商城、剧情和社交。
 
 正式执行服务器操作时应逐步进行，每一步核对输出后再继续，避免与正在写数据库的机器人同时迁移。

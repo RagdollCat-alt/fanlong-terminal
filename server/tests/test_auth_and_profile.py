@@ -176,6 +176,23 @@ class AuthAndProfileTest(unittest.TestCase):
         good_login = self.client.post("/api/auth/login", json={"qq": "10001", "password": "strong-pass-1"})
         self.assertEqual(good_login.status_code, 200)
 
+    def test_allowed_origin_receives_credentialed_cors_headers(self):
+        settings = self.app.config["TERMINAL_SETTINGS"]
+        object.__setattr__(settings, "allowed_origins", ("https://terminal.rpg0707.com",))
+        response = self.client.options(
+            "/api/auth/login",
+            headers={
+                "Origin": "https://terminal.rpg0707.com",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+        self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), "https://terminal.rpg0707.com")
+        self.assertEqual(response.headers.get("Access-Control-Allow-Credentials"), "true")
+
+        blocked = self.client.get("/api/health", headers={"Origin": "https://example.com"})
+        self.assertIsNone(blocked.headers.get("Access-Control-Allow-Origin"))
+
     def test_avatar_upload_is_reencoded_and_mapped(self):
         self.client.post("/api/auth/initialize", json={"qq": "10001", "password": "strong-pass-1"})
         image_bytes = io.BytesIO()
