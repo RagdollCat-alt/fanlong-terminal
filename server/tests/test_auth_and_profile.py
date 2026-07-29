@@ -205,6 +205,7 @@ class AuthAndProfileTest(unittest.TestCase):
         )
         self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), "https://terminal.rpg0707.com")
         self.assertEqual(response.headers.get("Access-Control-Allow-Credentials"), "true")
+        self.assertIn("DELETE", response.headers.get("Access-Control-Allow-Methods", ""))
         self.assertIn("Authorization", response.headers.get("Access-Control-Allow-Headers", ""))
 
         blocked = self.client.get("/api/health", headers={"Origin": "https://example.com"})
@@ -340,6 +341,10 @@ class AuthAndProfileTest(unittest.TestCase):
         self.assertTrue(favorite.json["data"]["favorite"])
         favorite_list = self.client.get("/api/dramas?filter=favorite").json["data"]["items"]
         self.assertEqual([item["id"] for item in favorite_list], [1])
+        unfavorite = self.client.delete("/api/dramas/1/favorite", headers=base_headers)
+        self.assertFalse(unfavorite.json["data"]["favorite"])
+        favorite_list = self.client.get("/api/dramas?filter=favorite").json["data"]["items"]
+        self.assertEqual(favorite_list, [])
         share = self.client.post("/api/dramas/1/share", headers=base_headers)
         self.assertIn("https://web.rpg0707.com/drama.html?id=1&sig=", share.json["data"]["url"])
 

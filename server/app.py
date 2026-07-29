@@ -275,7 +275,7 @@ def create_app(settings: Settings | None = None) -> Flask:
         if origin and origin in active.allowed_origins:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, X-CSRF-Token, Idempotency-Key"
             response.headers.add("Vary", "Origin")
         return response
