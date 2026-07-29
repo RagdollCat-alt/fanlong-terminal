@@ -197,6 +197,13 @@ function optimizedCardImage(path) {
     .replace(/\.(png|jpe?g)$/i, '.webp');
 }
 
+function resultCardImage(path) {
+  const optimized = optimizedCardImage(path);
+  return optimized?.startsWith('assets/ui/summon-cards-web/')
+    ? optimized.replace('assets/ui/summon-cards-web/', 'assets/ui/summon-cards-result-web/')
+    : optimized;
+}
+
 const warmedImageUrls = new Set();
 function preloadImage(url) {
   if (!url || warmedImageUrls.has(url)) return Promise.resolve();
@@ -1342,7 +1349,7 @@ function renderSummonResults(result) {
         <div class="summon-card-face summon-card-back" aria-hidden="true"></div>
         <div class="summon-card-face summon-card-front">
           <div class="summon-card-light" aria-hidden="true"></div>
-          <img src="${encodeURI(optimizedCardImage(card.image))}" alt="${escapeHtml(card.name)}" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">
+          <img src="${encodeURI(resultCardImage(card.image))}" alt="${escapeHtml(card.name)}" decoding="async" onerror="this.onerror=null;this.src='${encodeURI(optimizedCardImage(card.image))}'">
           <span class="summon-card-rarity">${card.rarity}</span>
           ${card.isNew ? '<i>NEW</i>' : ''}
           <strong>${escapeHtml(card.name)}</strong>
@@ -1364,7 +1371,7 @@ function confirmSummon(count) {
       const result = await apiRequest('/api/summon/draw', {
         method: 'POST', headers: operationHeaders(`summon-${count}`), body: JSON.stringify({ count })
       });
-      const resultImages = (result.results || []).map((card) => optimizedCardImage(card.image));
+      const resultImages = (result.results || []).map((card) => resultCardImage(card.image));
       await preloadImages(resultImages, count === 10 ? 5 : 1);
       closeTerminalDialog();
       summonData.balance = result.balance;
