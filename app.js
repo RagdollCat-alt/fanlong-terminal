@@ -1313,7 +1313,7 @@ document.querySelectorAll('[data-gallery-filter]').forEach((button) => button.ad
 }));
 document.querySelectorAll('[data-gallery-add]').forEach((button) => button.addEventListener('click', () => openResourceGuide(button.dataset.galleryAdd)));
 
-let summonData = { balance: 0, prices: { single: 5, ten: 45 }, cards: [] };
+let summonData = { balance: 0, prices: { single: 2, ten: 20 }, rates: { R: 80, SR: 19, SSR: 1 }, cards: [] };
 function applySummonState(data) {
   summonData = { ...summonData, ...data };
   galleryCards = (data.cards || []).map((card) => ({ ...card, image: optimizedCardImage(card.image), unlocked: true }));
@@ -1361,7 +1361,7 @@ function renderSummonResults(result) {
 
 function confirmSummon(count) {
   if (!apiUser) { showToast('请登录后进行召集'); return; }
-  const cost = count === 10 ? 45 : 5;
+  const cost = count === 10 ? summonData.prices.ten : summonData.prices.single;
   if (summonData.balance < cost) { showToast(`虞元不足，需要${cost}`); return; }
   openTerminalDialog({
     title: '确认召集',
@@ -1391,7 +1391,7 @@ document.querySelector('#summonDetailsLink').addEventListener('click', () => ope
   title: '召集详细说明',
   hideConfirm: true,
   cancelLabel: '知道了',
-  html: '<p>本次召集概率：R 70% · SR 25% · SSR 5%。</p><p>每次十连召集至少获得一张 SR 或 SSR。重复角色会自动转化为星辉碎片。</p>'
+  html: '<p>本次召集概率：R 80% · SR 19% · SSR 1%。</p><p>每次十连召集至少获得一张 SR 或 SSR。重复角色会自动转化为星辉碎片。</p>'
 }));
 
 function openActivityDialog() {

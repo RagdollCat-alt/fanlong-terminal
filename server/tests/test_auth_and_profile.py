@@ -359,8 +359,11 @@ class AuthAndProfileTest(unittest.TestCase):
         results = response.json["data"]["results"]
         self.assertEqual(len(results), 10)
         self.assertTrue(any(card["rarity"] in {"SR", "SSR"} for card in results))
-        self.assertEqual(response.json["data"]["balance"], 55)
+        self.assertEqual(response.json["data"]["cost"], 20)
+        self.assertEqual(response.json["data"]["balance"], 80)
         overview = self.client.get("/api/summon")
+        self.assertEqual(overview.json["data"]["prices"], {"single": 2, "ten": 20})
+        self.assertEqual(overview.json["data"]["rates"], {"R": 80, "SR": 19, "SSR": 1})
         self.assertGreater(len(overview.json["data"]["cards"]), 0)
         self.assertEqual(len(overview.json["data"]["history"]), 10)
 

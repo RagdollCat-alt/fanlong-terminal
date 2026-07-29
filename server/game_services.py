@@ -758,8 +758,8 @@ def summon_state(path: Path, qq_id: str) -> dict:
         ).fetchall()]
     return {
         "balance": int(currency.get("yuCoin", 0) or 0),
-        "prices": {"single": 5, "ten": 45},
-        "rates": {"R": 70, "SR": 25, "SSR": 5},
+        "prices": {"single": 2, "ten": 20},
+        "rates": {"R": 80, "SR": 19, "SSR": 1},
         "cards": cards,
         "history": history,
     }
@@ -776,7 +776,7 @@ def summon_draw(path: Path, qq_id: str, count: int, catalog: list[dict], idempot
     if count not in (1, 10):
         raise GameError("INVALID_INPUT", "召集次数仅支持1次或10次")
     action = f"summon.draw.{count}"
-    cost = 5 if count == 1 else 45
+    cost = 2 if count == 1 else 20
     with transaction(path, immediate=True) as db:
         cached = _cached_operation(db, idempotency_key, qq_id, action)
         if cached:
@@ -796,10 +796,10 @@ def summon_draw(path: Path, qq_id: str, count: int, catalog: list[dict], idempot
         draws: list[dict] = []
         for _index in range(count):
             roll = RNG.uniform(0, 100)
-            rarity = "SSR" if roll < 5 else "SR" if roll < 30 else "R"
+            rarity = "SSR" if roll < 1 else "SR" if roll < 20 else "R"
             draws.append(_draw_card(cards_by_rarity[rarity], (rarity,)))
         if count == 10 and not any(card["rarity"] in {"SR", "SSR"} for card in draws):
-            guaranteed_rarity = "SSR" if RNG.uniform(0, 100) < 16.67 else "SR"
+            guaranteed_rarity = "SSR" if RNG.uniform(0, 100) < 5 else "SR"
             draws[-1] = _draw_card(cards_by_rarity[guaranteed_rarity], (guaranteed_rarity,))
 
         currency["yuCoin"] = balance - cost
