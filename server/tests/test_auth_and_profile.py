@@ -44,8 +44,9 @@ class AuthAndProfileTest(unittest.TestCase):
                 );
                 CREATE TABLE user_bag (user_id TEXT, item_name TEXT, count INTEGER, PRIMARY KEY(user_id, item_name));
                 CREATE TABLE user_equip (
-                    user_id TEXT PRIMARY KEY, hair TEXT, top TEXT, bottom TEXT, head TEXT, neck TEXT,
-                    inner1 TEXT, inner2 TEXT, acc1 TEXT, acc2 TEXT, acc3 TEXT, acc4 TEXT
+                    user_id TEXT PRIMARY KEY, hair TEXT, top1 TEXT, top2 TEXT, bottom1 TEXT, bottom2 TEXT,
+                    head TEXT, neck TEXT, inner1 TEXT, inner2 TEXT, acc1 TEXT, acc2 TEXT, acc3 TEXT,
+                    acc4 TEXT, acc5 TEXT, title TEXT
                 );
                 CREATE TABLE items (
                     name TEXT PRIMARY KEY, price INTEGER DEFAULT 0, currency TEXT DEFAULT 'yuCoin',
@@ -96,11 +97,13 @@ class AuthAndProfileTest(unittest.TestCase):
             db.execute("INSERT INTO items (name, type, sub_type, effect, param) VALUES ('自选礼包', 'consumable', 'optional_pack', ?, ?)", (json.dumps({"amount": 5}), json.dumps(["颜值", "魅力"], ensure_ascii=False)))
             db.execute("INSERT INTO items (name, type, slot, stats) VALUES ('测试大衣', 'equip', 'top', ?)", (json.dumps({"魅力": 3}, ensure_ascii=False),))
             db.execute("INSERT INTO items (name, type, slot, stats) VALUES ('旧衣', 'equip', 'top', '{}')")
+            db.execute("INSERT INTO items (name, type, slot, stats) VALUES ('测试徽章', 'equip', 'accessory', '{}')")
             db.execute("INSERT INTO user_bag VALUES ('10001', '幸运碎片', 3)")
             db.execute("INSERT INTO user_bag VALUES ('10001', '形体课', 2)")
             db.execute("INSERT INTO user_bag VALUES ('10001', '自选礼包', 1)")
             db.execute("INSERT INTO user_bag VALUES ('10001', '测试大衣', 1)")
-            db.execute("INSERT INTO user_equip (user_id, top) VALUES ('10001', '旧衣')")
+            db.execute("INSERT INTO user_bag VALUES ('10001', '测试徽章', 1)")
+            db.execute("INSERT INTO user_equip (user_id, top1, acc1, acc2, acc3, acc4) VALUES ('10001', '旧衣', '旧配饰1', '旧配饰2', '旧配饰3', '旧配饰4')")
             db.execute("INSERT INTO drama_archives (id, title, date_str, content, participants, note, recorder) VALUES (1, '测试戏录', '虞历一月', '第一段\n第二段', '奚行简、虞景', '测试备注', '管理员')")
             db.executemany(
                 "INSERT INTO game_config (key, value) VALUES (?, ?)",
@@ -320,15 +323,24 @@ class AuthAndProfileTest(unittest.TestCase):
             headers={**base_headers, "Idempotency-Key": "equip-coat"},
         )
         self.assertEqual(equipped.status_code, 200)
-        self.assertEqual(equipped.json["data"]["slot"], "top")
-        self.assertEqual(equipped.json["data"]["replaced"], "旧衣")
+        self.assertEqual(equipped.json["data"]["slot"], "top2")
+        self.assertIsNone(equipped.json["data"]["replaced"])
         wardrobe = self.client.get("/api/wardrobe").json["data"]
         coat = next(item for item in wardrobe["items"] if item["name"] == "测试大衣")
-        self.assertEqual(coat["equippedSlots"], ["top"])
+        self.assertEqual(coat["slotGroup"], "top")
+        self.assertEqual(coat["equippedSlots"], ["top2"])
+
+        accessory = self.client.post(
+            "/api/wardrobe/equip",
+            json={"item": "测试徽章"},
+            headers={**base_headers, "Idempotency-Key": "equip-accessory"},
+        )
+        self.assertEqual(accessory.status_code, 200)
+        self.assertEqual(accessory.json["data"]["slot"], "acc5")
 
         unequipped = self.client.post(
             "/api/wardrobe/unequip",
-            json={"item": "测试大衣", "slot": "top"},
+            json={"item": "测试大衣", "slot": "top2"},
             headers={**base_headers, "Idempotency-Key": "unequip-coat"},
         )
         self.assertEqual(unequipped.status_code, 200)

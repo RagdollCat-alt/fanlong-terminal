@@ -1645,15 +1645,40 @@ document.querySelector('#memoryShareAction').addEventListener('click', async () 
 });
 
 const wardrobeDatabase = window.FANLONG_WARDROBE || { slots: [], items: [] };
-const outfitSlots = wardrobeDatabase.slots;
+const outfitSlots = [
+  { id: 'hair', label: '发型', english: 'HAIR' },
+  { id: 'top', label: '上衣', english: 'TOP' },
+  { id: 'bottom', label: '下装', english: 'BOTTOM' },
+  { id: 'head', label: '头饰', english: 'HEADWEAR' },
+  { id: 'neck', label: '颈饰', english: 'NECK' },
+  { id: 'interior', label: '内饰', english: 'INTERIOR' },
+  { id: 'accessory', label: '配饰', english: 'ACCESSORY' },
+  { id: 'title', label: '称号', english: 'TITLE' }
+];
+const outfitSlotGroups = {
+  top1: 'top', top2: 'top',
+  bottom1: 'bottom', bottom2: 'bottom',
+  inner1: 'interior', inner2: 'interior',
+  acc1: 'accessory', acc2: 'accessory', acc3: 'accessory', acc4: 'accessory', acc5: 'accessory'
+};
+const exactSlotLabels = {
+  hair: '发型', top: '上衣', top1: '上衣1', top2: '上衣2',
+  bottom: '下装', bottom1: '下装1', bottom2: '下装2',
+  head: '头饰', neck: '颈饰',
+  interior: '内饰', inner1: '内饰1', inner2: '内饰2',
+  accessory: '配饰', acc1: '配饰1', acc2: '配饰2', acc3: '配饰3', acc4: '配饰4', acc5: '配饰5',
+  title: '称号'
+};
 let outfits = wardrobeDatabase.items.map((item, index) => {
   let stats = {};
   try { stats = JSON.parse(item.stats || '{}'); } catch { stats = {}; }
   if (Array.isArray(stats)) stats = {};
+  const group = slotGroup(item.slot);
   return {
     ...item,
     id: `db-outfit-${index}`,
     type: item.slot,
+    slotGroup: group,
     description: String(item.desc || '数据库暂无服饰说明。').replace(/^【[^】]+】/, '').trim(),
     stats,
     unlocked: Boolean(item.owned),
@@ -1746,8 +1771,8 @@ function applyApiUser(user) {
 
 function itemAssetPath(item) {
   const wardrobeItem = wardrobeDatabase.items.find((entry) => entry.name === item.name);
-  const slot = item.slot || wardrobeItem?.slot;
-  const categories = { hair: '发型', top: '上衣', bottom: '下装', head: '头饰', neck: '颈饰', interior: '内饰', accessory: '配饰' };
+  const slot = item.slotGroup || slotGroup(item.slot || wardrobeItem?.slot);
+  const categories = { hair: '发型', top: '上衣', bottom: '下装', head: '头饰', neck: '颈饰', interior: '内饰', accessory: '配饰', title: '称号' };
   if (categories[slot]) return `assets/ui/products-web/${categories[slot]}/${item.name}.webp`;
   if (item.type === 'consumable') return `assets/ui/products-web/消耗类/${item.name}.webp`;
   return 'assets/ui/web/通用占位图.webp';
@@ -1775,11 +1800,13 @@ function applyApiInventory(data) {
 function applyApiWardrobe(data) {
   outfits = (data.items || []).map((item, index) => {
     const presentation = wardrobeDatabase.items.find((entry) => entry.name === item.name) || {};
+    const group = item.slotGroup || slotGroup(item.slot);
     return {
       ...presentation,
       ...item,
       id: `api-outfit-${index}`,
       type: item.slot,
+      slotGroup: group,
       description: item.description || '数据库暂无服饰说明。',
       unlocked: item.owned > 0,
       equipped: item.equippedSlots.length > 0,
@@ -1787,7 +1814,7 @@ function applyApiWardrobe(data) {
       stock_qty: item.stock
     };
   });
-  selectedOutfitId = outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slot === outfitFilter) && item.equipped)?.id || outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slot === outfitFilter))?.id || '';
+  selectedOutfitId = outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slotGroup === outfitFilter) && item.equipped)?.id || outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slotGroup === outfitFilter))?.id || '';
   outfitPage = 0;
   renderOutfitFilters();
   renderOutfits();
@@ -1884,13 +1911,19 @@ const productCategoryBySlot = {
   head: '头饰',
   neck: '颈饰',
   interior: '内饰',
-  accessory: '配饰'
+  accessory: '配饰',
+  title: '称号'
 };
 
+function slotGroup(slotId) { return outfitSlotGroups[slotId] || slotId || ''; }
+function slotLabel(slotId) { return outfitSlots.find((slot) => slot.id === slotGroup(slotId))?.label || exactSlotLabels[slotId] || slotId; }
+function exactSlotLabel(slotId) { return exactSlotLabels[slotId] || slotLabel(slotId); }
+
 function renderOutfitIcon(outfit) {
-  const symbols = { hair: '♒', top: '♜', bottom: '♟', head: '♕', neck: '♢', interior: '✣', accessory: '✦' };
-  const fallback = `<span class="slot-glyph slot-${outfit.slot}" aria-hidden="true"><b>${symbols[outfit.slot] || '✦'}</b></span>`;
-  const category = productCategoryBySlot[outfit.slot];
+  const group = outfit.slotGroup || slotGroup(outfit.slot);
+  const symbols = { hair: '♒', top: '♜', bottom: '♟', head: '♕', neck: '♢', interior: '✣', accessory: '✦', title: '◇' };
+  const fallback = `<span class="slot-glyph slot-${group}" aria-hidden="true"><b>${symbols[group] || '✦'}</b></span>`;
+  const category = productCategoryBySlot[group];
   if (!category) return `<img class="product-art" src="assets/ui/web/通用占位图.webp" alt="">${fallback}`;
   const imagePath = `assets/ui/products-web/${category}/${outfit.name}.webp`;
   return `<img class="product-art" src="${encodeURI(imagePath)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='assets/ui/web/通用占位图.webp'">${fallback}`;
@@ -1906,7 +1939,8 @@ function renderEquippedOutfit() {
     return;
   }
   const showcaseModifier = outfit.name === '素圈戒指' ? ' showcase-item-plain-ring' : '';
-  preview.innerHTML = `<div class="outfit-showcase showcase-slot-${outfit.slot}${showcaseModifier}">
+  const group = outfit.slotGroup || slotGroup(outfit.slot);
+  preview.innerHTML = `<div class="outfit-showcase showcase-slot-${group}${showcaseModifier}">
     <div class="showcase-window">
       <div class="showcase-aura" aria-hidden="true"></div>
       <div class="showcase-ring" aria-hidden="true"></div>
@@ -1915,7 +1949,8 @@ function renderEquippedOutfit() {
     </div>
   </div>`;
   document.querySelector('#equippedName').textContent = outfit.name;
-  document.querySelector('#equippedSlot').textContent = `${slotLabel(outfit.slot)} · ${outfit.equipped ? '当前穿戴' : outfit.unlocked ? '已拥有' : '未持有'}`;
+  const wornSlots = (outfit.equippedSlots || []).map(exactSlotLabel).join('、');
+  document.querySelector('#equippedSlot').textContent = `${slotLabel(outfit.slot)} · ${outfit.equipped ? `当前穿戴${wornSlots ? `：${wornSlots}` : ''}` : outfit.unlocked ? '已拥有' : '未持有'}`;
 }
 
 function renderLockIcon() {
@@ -1942,7 +1977,7 @@ function renderStatIcon(name) {
 }
 
 function renderOutfits() {
-  const filtered = outfits.filter((outfit) => outfit.unlocked && (outfitFilter === 'all' || outfit.slot === outfitFilter));
+  const filtered = outfits.filter((outfit) => outfit.unlocked && (outfitFilter === 'all' || outfit.slotGroup === outfitFilter));
   if (filtered.length && !filtered.some((outfit) => outfit.id === selectedOutfitId)) {
     selectedOutfitId = filtered.find((outfit) => outfit.equipped)?.id || filtered[0].id;
   }
@@ -2028,7 +2063,7 @@ equipButton.addEventListener('click', () => {
       await loadCurrentUser();
       const refreshedOutfit = outfits.find((entry) => entry.name === result.item);
       if (refreshedOutfit) {
-        if (outfitFilter !== 'all') outfitFilter = refreshedOutfit.slot;
+        if (outfitFilter !== 'all') outfitFilter = refreshedOutfit.slotGroup || slotGroup(refreshedOutfit.slot);
         selectedOutfitId = refreshedOutfit.id;
         renderOutfitFilters();
         renderOutfits();
@@ -2042,7 +2077,6 @@ equipButton.addEventListener('click', () => {
   });
 });
 
-function slotLabel(slotId) { return outfitSlots.find((slot) => slot.id === slotId)?.label || slotId; }
 function currencyLabel(currency) { return currency === 'reputation' ? '名誉' : '虞元'; }
 function acquisitionLabel(outfit) { return outfit.price < 0 ? '限定获取' : outfit.is_selling ? `${outfit.price} ${currencyLabel(outfit.currency)}` : '暂不可获得'; }
 function normalizeStatName(name) { return name.includes('威慑') || name.includes('服从') ? '威慑' : name === '名誉' ? '魅力' : name; }
@@ -2055,7 +2089,7 @@ function renderOutfitFilters() {
   document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
     outfitFilter = button.dataset.filter;
     outfitPage = 0;
-    selectedOutfitId = outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slot === outfitFilter) && item.equipped)?.id || outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slot === outfitFilter))?.id || '';
+    selectedOutfitId = outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slotGroup === outfitFilter) && item.equipped)?.id || outfits.find((item) => item.unlocked && (outfitFilter === 'all' || item.slotGroup === outfitFilter))?.id || '';
     renderOutfitFilters();
     renderOutfits();
     renderOutfitDetails();

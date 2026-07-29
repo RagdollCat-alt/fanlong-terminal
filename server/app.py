@@ -25,6 +25,7 @@ from game_services import (
     daily_train,
     compound_item,
     equip_item,
+    equip_slot_group,
     purchase_item,
     summon_draw,
     summon_state,
@@ -552,24 +553,29 @@ def create_app(settings: Settings | None = None) -> Flask:
                 "SELECT * FROM items WHERE type='equip' ORDER BY slot, rowid"
             ).fetchall()
         equipped_slots = {key: equip[key] for key in equip.keys() if key != "user_id"} if equip else {}
+        if equipped_slots.get("top") and not equipped_slots.get("top1"):
+            equipped_slots["top1"] = equipped_slots["top"]
+        if equipped_slots.get("bottom") and not equipped_slots.get("bottom1"):
+            equipped_slots["bottom1"] = equipped_slots["bottom"]
         equipped_counts: dict[str, int] = {}
-        for item_name in equipped_slots.values():
+        normalized_equipped_slots = {key: value for key, value in equipped_slots.items() if key not in {"top", "bottom"}}
+        for item_name in normalized_equipped_slots.values():
             if item_name:
                 equipped_counts[item_name] = equipped_counts.get(item_name, 0) + 1
         items = []
         for row in rows:
             owned = int(bag.get(row["name"], 0)) + equipped_counts.get(row["name"], 0)
-            slots = [key for key, value in equipped_slots.items() if value == row["name"]]
+            slots = [key for key, value in normalized_equipped_slots.items() if value == row["name"]]
             items.append(
                 {
                     "name": row["name"], "price": row["price"], "currency": row["currency"],
-                    "slot": row["slot"], "description": row["desc"] or "暂无说明",
+                    "slot": row["slot"], "slotGroup": equip_slot_group(row["slot"]), "description": row["desc"] or "暂无说明",
                     "stats": json_object(row["stats"]), "isSelling": bool(row["is_selling"]),
                     "stock": row["stock_qty"], "owned": owned, "equippedSlots": slots,
                 }
             )
         items.sort(key=lambda item: (0 if item["equippedSlots"] else 1 if item["owned"] else 2, item["name"]))
-        return payload(True, "OK", "读取成功", {"items": items, "equipped": equipped_slots})
+        return payload(True, "OK", "读取成功", {"items": items, "equipped": normalized_equipped_slots})
 
     @app.post("/api/wardrobe/equip")
     @auth_required(write=True)

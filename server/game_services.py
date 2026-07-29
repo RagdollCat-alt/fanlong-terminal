@@ -21,13 +21,60 @@ class GameError(Exception):
 
 RNG = random.SystemRandom()
 STAT_FALLBACK = ["stat_face", "stat_charm", "stat_intel", "stat_biz", "stat_talk", "stat_body", "stat_art", "stat_obed"]
-EQUIP_SINGLE_SLOTS = {"hair", "top", "bottom", "head", "neck"}
-EQUIP_SLOT_GROUPS = {"interior": ["inner1", "inner2"], "accessory": ["acc1", "acc2", "acc3", "acc4"]}
+EQUIP_SINGLE_SLOTS = {"hair", "head", "neck", "title"}
+EQUIP_SLOT_GROUPS = {
+    "top": ["top1", "top2"],
+    "bottom": ["bottom1", "bottom2"],
+    "interior": ["inner1", "inner2"],
+    "accessory": ["acc1", "acc2", "acc3", "acc4", "acc5"],
+}
+EQUIP_EXACT_SLOTS = {
+    "hair", "top1", "top2", "bottom1", "bottom2", "head", "neck",
+    "inner1", "inner2", "acc1", "acc2", "acc3", "acc4", "acc5", "title",
+}
+EQUIP_SLOT_DISPLAY_GROUPS = {
+    "top1": "top", "top2": "top",
+    "bottom1": "bottom", "bottom2": "bottom",
+    "inner1": "interior", "inner2": "interior",
+    "acc1": "accessory", "acc2": "accessory", "acc3": "accessory", "acc4": "accessory", "acc5": "accessory",
+}
+EQUIP_LEGACY_SLOT_FALLBACKS = {"top1": "top", "bottom1": "bottom"}
 LOCKED_EQUIP_ITEMS = {"家徽烙印•罪"}
 STAT_DEFAULT_LABELS = {
     "stat_face": "颜值", "stat_charm": "魅力", "stat_intel": "智力", "stat_biz": "商业",
     "stat_talk": "口才", "stat_body": "体能", "stat_art": "才艺", "stat_obed": "服从/威慑",
 }
+
+
+def equip_slot_group(slot: str) -> str:
+    return EQUIP_SLOT_DISPLAY_GROUPS.get(str(slot or ""), str(slot or ""))
+
+
+def _equip_value(equip, slot: str):
+    if slot in equip.keys():
+        return equip[slot]
+    fallback = EQUIP_LEGACY_SLOT_FALLBACKS.get(slot)
+    if fallback and fallback in equip.keys():
+        return equip[fallback]
+    return None
+
+
+def _equip_db_slot(equip, slot: str) -> str:
+    if slot in equip.keys():
+        return slot
+    fallback = EQUIP_LEGACY_SLOT_FALLBACKS.get(slot)
+    if fallback and fallback in equip.keys():
+        return fallback
+    return slot
+
+
+def _available_equip_slots(equip) -> set[str]:
+    keys = set(equip.keys())
+    slots = {slot for slot in EQUIP_EXACT_SLOTS if slot in keys}
+    for slot, fallback in EQUIP_LEGACY_SLOT_FALLBACKS.items():
+        if slot not in slots and fallback in keys:
+            slots.add(slot)
+    return slots
 
 
 def _config(db, key: str, default, cast=int):
@@ -655,26 +702,40 @@ def equip_item(path: Path, qq_id: str, item_name: str, requested_slot: str, idem
             db.execute("INSERT INTO user_equip (user_id) VALUES (?)", (qq_id,))
             equip = db.execute("SELECT * FROM user_equip WHERE user_id=?", (qq_id,)).fetchone()
         slot_type = str(item["slot"] or "")
+        available_slots = _available_equip_slots(equip)
         if slot_type in EQUIP_SINGLE_SLOTS:
             if requested_slot and requested_slot != slot_type:
                 raise GameError("INVALID_EQUIP_SLOT", "该服饰不能穿戴到指定位置")
+            if slot_type not in available_slots:
+                raise GameError("INVALID_EQUIP_SLOT", "该服饰的穿戴位置未配置")
+            target_slot = slot_type
+        elif slot_type in EQUIP_EXACT_SLOTS:
+            if requested_slot and requested_slot != slot_type:
+                raise GameError("INVALID_EQUIP_SLOT", "该服饰不能穿戴到指定位置")
+            if slot_type not in available_slots:
+                raise GameError("INVALID_EQUIP_SLOT", "该服饰的穿戴位置未配置")
             target_slot = slot_type
         elif slot_type in EQUIP_SLOT_GROUPS:
-            candidates = EQUIP_SLOT_GROUPS[slot_type]
+            candidates = [slot for slot in EQUIP_SLOT_GROUPS[slot_type] if slot in available_slots]
+            if not candidates and slot_type in equip.keys():
+                candidates = [slot_type]
             if requested_slot:
-                if requested_slot not in candidates:
+                if requested_slot == slot_type:
+                    requested_slot = ""
+                elif requested_slot not in candidates:
                     raise GameError("INVALID_EQUIP_SLOT", "该服饰不能穿戴到指定位置")
+            if requested_slot:
                 target_slot = requested_slot
             else:
-                target_slot = next((slot for slot in candidates if not equip[slot]), "")
+                target_slot = next((slot for slot in candidates if not _equip_value(equip, slot)), "")
                 if not target_slot:
-                    target_slot = next((slot for slot in candidates if equip[slot] not in LOCKED_EQUIP_ITEMS), "")
+                    target_slot = next((slot for slot in candidates if _equip_value(equip, slot) not in LOCKED_EQUIP_ITEMS), "")
                 if not target_slot:
                     raise GameError("EQUIP_SLOT_LOCKED", "该类槽位已被无法卸下的服饰占用")
         else:
             raise GameError("INVALID_EQUIP_SLOT", "该服饰的穿戴位置未配置")
 
-        replaced = equip[target_slot]
+        replaced = _equip_value(equip, target_slot)
         if replaced in LOCKED_EQUIP_ITEMS:
             raise GameError("EQUIP_SLOT_LOCKED", f"“{replaced}”无法被替换")
         if replaced:
@@ -684,7 +745,8 @@ def equip_item(path: Path, qq_id: str, item_name: str, requested_slot: str, idem
             )
         db.execute("UPDATE user_bag SET count=count-1 WHERE user_id=? AND item_name=?", (qq_id, item_name))
         db.execute("DELETE FROM user_bag WHERE user_id=? AND item_name=? AND count<=0", (qq_id, item_name))
-        db.execute(f"UPDATE user_equip SET {target_slot}=? WHERE user_id=?", (item_name, qq_id))
+        db_slot = _equip_db_slot(equip, target_slot)
+        db.execute(f"UPDATE user_equip SET {db_slot}=? WHERE user_id=?", (item_name, qq_id))
 
         first_wear_changes: list[dict] = []
         instance = db.execute(
@@ -718,12 +780,16 @@ def unequip_item(path: Path, qq_id: str, item_name: str, requested_slot: str, id
         if equip is None:
             raise GameError("EQUIPMENT_NOT_WORN", "当前没有穿戴这件服饰")
         slots = [key for key in equip.keys() if key != "user_id" and equip[key] == item_name]
+        for display_slot, legacy_slot in EQUIP_LEGACY_SLOT_FALLBACKS.items():
+            if legacy_slot in slots and display_slot not in slots:
+                slots.append(display_slot)
         if requested_slot:
             slots = [slot for slot in slots if slot == requested_slot]
         if not slots:
             raise GameError("EQUIPMENT_NOT_WORN", "当前没有在指定位置穿戴这件服饰")
         target_slot = slots[0]
-        db.execute(f"UPDATE user_equip SET {target_slot}=NULL WHERE user_id=?", (qq_id,))
+        db_slot = _equip_db_slot(equip, target_slot)
+        db.execute(f"UPDATE user_equip SET {db_slot}=NULL WHERE user_id=?", (qq_id,))
         db.execute(
             "INSERT INTO user_bag (user_id, item_name, count) VALUES (?, ?, 1) ON CONFLICT(user_id, item_name) DO UPDATE SET count=count+1",
             (qq_id, item_name),
