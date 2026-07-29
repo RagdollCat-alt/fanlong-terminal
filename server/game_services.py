@@ -44,6 +44,11 @@ STAT_DEFAULT_LABELS = {
     "stat_face": "颜值", "stat_charm": "魅力", "stat_intel": "智力", "stat_biz": "商业",
     "stat_talk": "口才", "stat_body": "体能", "stat_art": "才艺", "stat_obed": "服从/威慑",
 }
+LUCKY_FRAGMENT_NAME = "幸运碎片"
+LUCKY_PACK_NAME = "幸运礼包"
+LUCKY_PACK_COST = 5
+LUCKY_PACK_STAT_AMOUNT = 5
+LUCKY_PACK_CHOICES = ["颜值", "魅力", "智力", "商业", "口才", "体能", "才艺", "威慑"]
 
 
 def equip_slot_group(slot: str) -> str:
@@ -621,6 +626,47 @@ def compound_item(path: Path, qq_id: str, item_name: str, count: int, idempotenc
         return result
 
 
+def exchange_lucky_pack(path: Path, qq_id: str, count: int, idempotency_key: str) -> dict:
+    if count <= 0 or count > 999:
+        raise GameError("INVALID_INPUT", "请选择正确的兑换数量")
+    with transaction(path, immediate=True) as db:
+        cached = _cached_operation(db, idempotency_key, qq_id, "inventory.exchange_lucky_pack")
+        if cached:
+            return cached
+        _load_user(db, qq_id)
+        fragment = db.execute(
+            "SELECT count FROM user_bag WHERE user_id=? AND item_name=?",
+            (qq_id, LUCKY_FRAGMENT_NAME),
+        ).fetchone()
+        owned_fragments = int(fragment["count"] or 0) if fragment else 0
+        required = LUCKY_PACK_COST * count
+        if owned_fragments < required:
+            raise GameError("MATERIAL_INSUFFICIENT", f"{LUCKY_FRAGMENT_NAME}不足，需要{required}，当前{owned_fragments}")
+        db.execute(
+            "UPDATE user_bag SET count=count-? WHERE user_id=? AND item_name=?",
+            (required, qq_id, LUCKY_FRAGMENT_NAME),
+        )
+        db.execute("DELETE FROM user_bag WHERE user_id=? AND item_name=? AND count<=0", (qq_id, LUCKY_FRAGMENT_NAME))
+        db.execute(
+            """
+            INSERT INTO user_bag (user_id, item_name, count) VALUES (?, ?, ?)
+            ON CONFLICT(user_id, item_name) DO UPDATE SET count=count+excluded.count
+            """,
+            (qq_id, LUCKY_PACK_NAME, count),
+        )
+        pack = db.execute("SELECT count FROM user_bag WHERE user_id=? AND item_name=?", (qq_id, LUCKY_PACK_NAME)).fetchone()
+        result = {
+            "item": LUCKY_PACK_NAME,
+            "count": count,
+            "costItem": LUCKY_FRAGMENT_NAME,
+            "cost": required,
+            "remainingFragments": owned_fragments - required,
+            "owned": int(pack["count"] or 0) if pack else count,
+        }
+        _store_operation(db, idempotency_key, qq_id, "inventory.exchange_lucky_pack", result)
+        return result
+
+
 def use_inventory_item(path: Path, qq_id: str, item_name: str, count: int, choice: str, idempotency_key: str) -> dict:
     item_name = str(item_name or "").strip()
     choice = str(choice or "").strip()
@@ -633,7 +679,19 @@ def use_inventory_item(path: Path, qq_id: str, item_name: str, count: int, choic
         user, currency, _limits = _load_user(db, qq_id)
         item = db.execute("SELECT * FROM items WHERE name=?", (item_name,)).fetchone()
         if item is None:
-            raise GameError("ITEM_NOT_FOUND", "物品不存在", 404)
+            if item_name != LUCKY_PACK_NAME:
+                raise GameError("ITEM_NOT_FOUND", "物品不存在", 404)
+            item = {"stats": "{}"}
+        if item_name == LUCKY_PACK_NAME:
+            item = {
+                **dict(item),
+                "type": "consumable",
+                "sub_type": "optional_pack",
+                "param": json.dumps(LUCKY_PACK_CHOICES, ensure_ascii=False),
+                "effect": json.dumps({"amount": LUCKY_PACK_STAT_AMOUNT}, ensure_ascii=False),
+            }
+        if item_name == LUCKY_FRAGMENT_NAME:
+            raise GameError("ITEM_NOT_USABLE", f"{LUCKY_FRAGMENT_NAME}不能直接使用，请集齐{LUCKY_PACK_COST}个兑换{LUCKY_PACK_NAME}")
         if item["type"] != "consumable":
             raise GameError("ITEM_NOT_USABLE", "该物品需要在服饰页面穿戴，不能直接使用")
         bag = db.execute("SELECT count FROM user_bag WHERE user_id=? AND item_name=?", (qq_id, item_name)).fetchone()

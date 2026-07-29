@@ -98,7 +98,7 @@ class AuthAndProfileTest(unittest.TestCase):
             db.execute("INSERT INTO items (name, type, slot, stats) VALUES ('测试大衣', 'equip', 'top', ?)", (json.dumps({"魅力": 3}, ensure_ascii=False),))
             db.execute("INSERT INTO items (name, type, slot, stats) VALUES ('旧衣', 'equip', 'top', '{}')")
             db.execute("INSERT INTO items (name, type, slot, stats) VALUES ('测试徽章', 'equip', 'accessory', '{}')")
-            db.execute("INSERT INTO user_bag VALUES ('10001', '幸运碎片', 3)")
+            db.execute("INSERT INTO user_bag VALUES ('10001', '幸运碎片', 5)")
             db.execute("INSERT INTO user_bag VALUES ('10001', '形体课', 2)")
             db.execute("INSERT INTO user_bag VALUES ('10001', '自选礼包', 1)")
             db.execute("INSERT INTO user_bag VALUES ('10001', '测试大衣', 1)")
@@ -294,7 +294,7 @@ class AuthAndProfileTest(unittest.TestCase):
             headers={"X-CSRF-Token": self.csrf(), "Idempotency-Key": "item-once"},
         )
         self.assertEqual(item.status_code, 200)
-        self.assertEqual(item.json["data"]["senderRemaining"], 1)
+        self.assertEqual(item.json["data"]["senderRemaining"], 3)
 
     def test_inventory_wardrobe_and_drama_actions_use_real_state(self):
         self.client.post("/api/auth/initialize", json={"qq": "10001", "password": "strong-pass-1"})
@@ -316,6 +316,29 @@ class AuthAndProfileTest(unittest.TestCase):
         )
         self.assertEqual(optional.status_code, 200)
         self.assertEqual(optional.json["data"]["changes"][0]["after"], 15)
+
+        inventory = self.client.get("/api/inventory").json["data"]["items"]
+        fragment = next(item for item in inventory if item["name"] == "幸运碎片")
+        self.assertEqual(fragment["action"], "exchange_lucky_pack")
+        self.assertEqual(fragment["exchange"]["max"], 1)
+
+        exchanged = self.client.post(
+            "/api/inventory/exchange-lucky-pack",
+            json={"count": 1},
+            headers={**base_headers, "Idempotency-Key": "exchange-lucky-pack"},
+        )
+        self.assertEqual(exchanged.status_code, 200)
+        self.assertEqual(exchanged.json["data"]["item"], "幸运礼包")
+        self.assertEqual(exchanged.json["data"]["remainingFragments"], 0)
+
+        pack = self.client.post(
+            "/api/inventory/use",
+            json={"item": "幸运礼包", "count": 1, "choice": "智力"},
+            headers={**base_headers, "Idempotency-Key": "use-lucky-pack"},
+        )
+        self.assertEqual(pack.status_code, 200)
+        self.assertEqual(pack.json["data"]["changes"][0]["label"], "智力")
+        self.assertEqual(pack.json["data"]["changes"][0]["after"], 15)
 
         equipped = self.client.post(
             "/api/wardrobe/equip",

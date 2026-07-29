@@ -26,6 +26,12 @@ from game_services import (
     compound_item,
     equip_item,
     equip_slot_group,
+    exchange_lucky_pack,
+    LUCKY_FRAGMENT_NAME,
+    LUCKY_PACK_CHOICES,
+    LUCKY_PACK_COST,
+    LUCKY_PACK_NAME,
+    LUCKY_PACK_STAT_AMOUNT,
     purchase_item,
     summon_draw,
     summon_state,
@@ -508,20 +514,43 @@ def create_app(settings: Settings | None = None) -> Flask:
                 """,
                 (g.qq_id,),
             ).fetchall()
-        items = [
-            {
-                "name": row["item_name"],
-                "count": row["count"],
-                "type": row["type"] or "unknown",
-                "slot": row["slot"],
-                "description": row["desc"] or "暂无说明",
-                "stats": json_object(row["stats"]),
-                "effect": json_object(row["effect"]),
-                "subType": row["sub_type"],
-                "param": json.loads(row["param"] or "[]") if row["param"] else [],
-            }
-            for row in rows
-        ]
+        items = []
+        for row in rows:
+            name = row["item_name"]
+            item_type = row["type"] or "unknown"
+            description = row["desc"] or "暂无说明"
+            effect = json_object(row["effect"])
+            sub_type = row["sub_type"]
+            param = json.loads(row["param"] or "[]") if row["param"] else []
+            action = "use"
+            exchange = None
+            if name == LUCKY_FRAGMENT_NAME:
+                item_type = "consumable"
+                description = f"集齐{LUCKY_PACK_COST}个可兑换1个{LUCKY_PACK_NAME}。"
+                sub_type = "exchange_material"
+                action = "exchange_lucky_pack"
+                exchange = {"target": LUCKY_PACK_NAME, "cost": LUCKY_PACK_COST, "max": int(row["count"] or 0) // LUCKY_PACK_COST}
+            elif name == LUCKY_PACK_NAME:
+                item_type = "consumable"
+                description = f"使用后可选择一个属性增加{LUCKY_PACK_STAT_AMOUNT}点。"
+                effect = {"amount": LUCKY_PACK_STAT_AMOUNT}
+                sub_type = "optional_pack"
+                param = LUCKY_PACK_CHOICES
+            items.append(
+                {
+                    "name": name,
+                    "count": row["count"],
+                    "type": item_type,
+                    "slot": row["slot"],
+                    "description": description,
+                    "stats": json_object(row["stats"]),
+                    "effect": effect,
+                    "subType": sub_type,
+                    "param": param,
+                    "action": action,
+                    "exchange": exchange,
+                }
+            )
         return payload(True, "OK", "读取成功", {"items": items})
 
     @app.post("/api/inventory/use")
@@ -542,6 +571,18 @@ def create_app(settings: Settings | None = None) -> Flask:
         )
         audit(g.qq_id, "inventory.use", result["item"], "success")
         return payload(True, "OK", "使用成功", result)
+
+    @app.post("/api/inventory/exchange-lucky-pack")
+    @auth_required(write=True)
+    def inventory_exchange_lucky_pack():
+        body = request.get_json(silent=True) or {}
+        try:
+            count = int(body.get("count", 1))
+        except (TypeError, ValueError):
+            count = 0
+        result = exchange_lucky_pack(active.fanlong_db_path, g.qq_id, count, idempotency_key())
+        audit(g.qq_id, "inventory.exchange_lucky_pack", result["item"], "success")
+        return payload(True, "OK", "兑换成功", result)
 
     @app.get("/api/wardrobe")
     @auth_required()

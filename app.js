@@ -1217,7 +1217,11 @@ function renderBag() {
   document.querySelector('#bagItemCount').textContent = item.count;
   document.querySelector('#bagItemDescription').textContent = item.description;
   useButton.disabled = !item.usable || item.count < 1;
-  useButton.querySelector('span').textContent = item.count < 1 ? '已用完' : item.usable ? '使用' : '不可使用';
+  if (item.action === 'exchange_lucky_pack') {
+    useButton.querySelector('span').textContent = item.count < 5 ? '不足5个' : '兑换';
+  } else {
+    useButton.querySelector('span').textContent = item.count < 1 ? '已用完' : item.usable ? '使用' : '不可使用';
+  }
 }
 
 document.querySelector('#bagBack').addEventListener('click', () => showScreen(home));
@@ -1230,6 +1234,29 @@ document.querySelector('#bagFilters').addEventListener('click', (event) => {
 document.querySelector('#bagUseButton').addEventListener('click', () => {
   const item = bagItems.find((entry) => entry.id === selectedBagItemId);
   if (!item || !item.usable || item.count < 1) return;
+  if (item.action === 'exchange_lucky_pack') {
+    const max = item.exchange?.max || Math.floor(item.count / 5);
+    openTerminalDialog({
+      title: '兑换幸运礼包',
+      confirmLabel: '确认兑换',
+      html: `<p class="dialog-target">${escapeHtml(item.name)} · 当前持有 ${item.count}</p>
+        <p>每 5 个幸运碎片可兑换 1 个幸运礼包。</p>
+        <label>兑换数量<input id="dialogExchangeCount" type="number" min="1" max="${max}" step="1" value="1"></label>`,
+      onConfirm: async () => {
+        const count = Number(document.querySelector('#dialogExchangeCount').value);
+        if (!Number.isInteger(count) || count < 1 || count > max) throw new Error('请输入正确数量');
+        const result = await apiRequest('/api/inventory/exchange-lucky-pack', {
+          method: 'POST',
+          headers: operationHeaders('inventory-exchange-lucky-pack'),
+          body: JSON.stringify({ count })
+        });
+        await loadCurrentUser();
+        closeTerminalDialog();
+        showToast(`已兑换·${result.item} ×${result.count}`);
+      }
+    });
+    return;
+  }
   const needsChoice = item.subType === 'optional_pack';
   const options = Array.isArray(item.param) ? item.param : [];
   openTerminalDialog({
@@ -1770,6 +1797,7 @@ function applyApiUser(user) {
 }
 
 function itemAssetPath(item) {
+  if (item.name === '幸运礼包') return 'assets/ui/products-web/消耗类/自选礼包.webp';
   const wardrobeItem = wardrobeDatabase.items.find((entry) => entry.name === item.name);
   const slot = item.slotGroup || slotGroup(item.slot || wardrobeItem?.slot);
   const categories = { hair: '发型', top: '上衣', bottom: '下装', head: '头饰', neck: '颈饰', interior: '内饰', accessory: '配饰', title: '称号' };
@@ -1791,7 +1819,7 @@ function applyApiInventory(data) {
     id: `api-bag-${index}`,
     type: item.type === 'equip' ? '服饰' : item.type === 'consumable' ? '道具' : '其他',
     image: itemAssetPath(item),
-    usable: item.type === 'consumable'
+    usable: item.action === 'exchange_lucky_pack' ? (item.exchange?.max || 0) > 0 : item.type === 'consumable'
   }));
   selectedBagItemId = bagItems[0]?.id || '';
   renderBag();
