@@ -1391,7 +1391,7 @@ document.querySelector('#summonDetailsLink').addEventListener('click', () => ope
   title: '召集详细说明',
   hideConfirm: true,
   cancelLabel: '知道了',
-  html: '<p>本次召集概率：R 80% · SR 19% · SSR 1%。</p><p>每次十连召集至少获得一张 SR 或 SSR。重复角色会自动转化为星辉碎片。</p>'
+  html: '<p>本次召集概率：R 80% · SR 19% · SSR 1%。</p><p>每次十连召集至少获得一张 SR 或 SSR。</p>'
 }));
 
 function openActivityDialog() {
